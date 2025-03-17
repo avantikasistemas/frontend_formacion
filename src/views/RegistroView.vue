@@ -312,10 +312,12 @@ onMounted(() => {
     display: flex;
     flex-wrap: wrap; /* Permite que los elementos se ajusten automáticamente */
     gap: 16px; /* Espaciado entre elementos */
+    align-items: flex-start;
 }
 .form-group {
     flex: 1 1 calc(33.333% - 16px); /* Cada elemento ocupa 1/3 del ancho, restando el gap */
     min-width: 200px; /* Evita que se vuelvan demasiado pequeños */
+    max-width: 500px; /* Máximo ancho para que no se expanda */
 }
 .form-group label {
     display: block;
