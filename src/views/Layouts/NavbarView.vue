@@ -4,10 +4,10 @@
         <h2>Formaciones</h2>
         <nav>
           <ul>
-            <li><a href="#" class="active"><i class="fa-solid fa-file"></i> Registro</a></li>
-            <li><a href="#"><i class="fa-regular fa-folder-open"></i> Mis Formaciones</a></li>
-            <li><a href="#"><i class="fa-solid fa-user"></i> Perfil</a></li>
-            <li><a href="#"><i class="fa-solid fa-gear"></i> Configuraciones</a></li>
+            <li><router-link :to="{ name: 'registro'}"><i class="fa-solid fa-file"></i> Registro</router-link></li>
+            <li><router-link :to="{ name: 'formaciones'}"><i class="fa-regular fa-folder-open"></i> Formaciones</router-link></li>
+            <!-- <li><router-link><i class="fa-solid fa-user"></i> Perfil</router-link></li>
+            <li><router-link><i class="fa-solid fa-gear"></i> Configuraciones</router-link></li> -->
           </ul>
         </nav>
         <button class="logout" @click="logout">Cerrar Sesión</button>
@@ -89,7 +89,7 @@
     margin: 20px 0;
   }
   
-  nav ul li a {
+  nav ul li a, nav ul li router-link {
     color: white;
     text-decoration: none;
     padding: 10px;
@@ -97,6 +97,11 @@
     border-radius: 5px;
     transition: background 0.3s;
   }
+
+nav ul li .router-link-active {
+  background: #454866; /* Color de fondo cuando está activo */
+  font-weight: bold;
+}
   
   nav ul li a:hover,
   .active {
@@ -104,7 +109,7 @@
   }
   
   .logout {
-    background: #e74c3c;
+    background: #772017;
     color: white;
     border: none;
     padding: 10px;

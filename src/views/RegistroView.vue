@@ -3,13 +3,9 @@
         <h3> Bienvenido, {{ nombre }}</h3>
 
         <div class="container">
-            <div class="header">
-                <h1>Registro de Formaciones</h1>
-                <input type="text" placeholder="Buscar formación..." class="search-input">
-            </div>
             <div class="form-container">
                 <h2>Registrar Nueva Formación</h2>
-                <form class="form-flex">
+                <form @submit.prevent="guardarFormacion" class="form-flex">
                     <div class="form-group">
                         <label>Nivel de Formación:</label>
                         <select class="input-field" v-model="nivel_formacion">
@@ -139,10 +135,52 @@
                     </div>
                     <div class="form-group">
                         <label>Fecha de Finalización de Formación:</label>
-                        <input type="date" class="input-field" v-model="fecha_fin">
+                        <input type="date" class="input-field" v-model="fecha_fin" :min="fecha_inicio">
                     </div>
-                    <button type="submit" class="submit-button" @click="enviar">Registrar Formación</button>
+                    <button type="submit" class="submit-button">Registrar Formación</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal de éxito -->
+        <div class="modal fade" id="exitoModal" tabindex="-1" aria-labelledby="exitoModalLabel" aria-hidden="true" data-bs-backdrop="static" ref="exitoModal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exitoModalLabel">Modal Formación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="goListaReportes"></button>
+                    </div>
+                    <div class="modal-body">
+                        {{ msg }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="limpiar">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de error -->
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true" data-bs-backdrop="static" ref="errorModal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {{ errorMsg }}
+                    </div>
+                    <div class="modal-footer" v-if="token_status===401">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="logout">Cerrar</button>
+                    </div>
+                    <div class="modal-footer" v-else-if="token_status===403">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="redirigir_home">Cerrar</button>
+                    </div>
+                    <div class="modal-footer" v-else>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
             </div>
         </div>
     </LayoutView>
@@ -154,6 +192,7 @@ import LayoutView from '../views/Layouts/LayoutView.vue';
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { Modal } from 'bootstrap';
 
 const token = ref("");
 const nombre = ref("");
@@ -197,25 +236,81 @@ const proveedorId = ref("");
 const proveedores = ref([]);
 const mostrarLista = ref(false);
 
+const modalInstance = ref(null);
+const modalErrorInstance = ref(null);
+
+const token_status = ref(0);
+
 const msg = ref("");
 const errorMsg = ref("");
 
 const router = useRouter();
 
-const enviar = async () => {
-    console.log(proveedorBusqueda.value);
-    console.log(proveedorId.value);
-}
+// ✅ Función que llama a la api para guardar la formación
+const guardarFormacion = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        const response = await axios.post(
+            `${apiUrl}/guardar_formacion`, 
+            {
+                nivel_formacion: nivel_formacion.value,
+                tipo_actividad: tipo_actividad.value,
+                tema: tema.value,
+                origen: origen.value,
+                objetivo_general: objetivo_general.value,
+                objetivo_especifico: objetivo_especifico.value,
+                modalidad: modalidad.value,
+                duracion_horas: duracion_horas.value,
+                duracion_minutos: duracion_minutos.value,
+                metodologia: metodologia.value,
+                tipo: tipo.value,
+                proveedor: proveedorId.value,
+                ciudad: ciudad.value,
+                evaluacion: evaluacion.value,
+                seguimiento: seguimiento.value,
+                fecha_inicio: fecha_inicio.value,
+                fecha_fin: fecha_fin.value,
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 201) {
+            msg.value = response.data.message;
+            modalInstance.value.show();
+        }
 
+    } catch (error) {
+        console.error('Error al guardar formación:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }    
+};
 
 // ✅ Función para cargar los select generales del formulario
 const cargarDatos = async () => {
     try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
         const response = await axios.post(
             `${apiUrl}/get_parametros`, {},
             {
                 headers: {
                     Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
                 }
             }
         );
@@ -233,10 +328,23 @@ const cargarDatos = async () => {
 
     } catch (error) {
         console.error('Error al cargar los datos:', error);
+        modalErrorInstance.value.show();
         errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
     }
 };
+
+// ✅ Watcher que esta pendiente si hay un cambio en el campo de busqueda
 watch(proveedorBusqueda, async (nuevoValor) => {
+    if (!token.value) {
+        router.push('/'); // Redirigir al login si no hay token
+    }
     if (nuevoValor.length >= 2) { // Iniciar búsqueda después de 2 caracteres
         try {
             const response = await axios.post(`${apiUrl}/get_proveedores`, 
@@ -246,6 +354,7 @@ watch(proveedorBusqueda, async (nuevoValor) => {
                 {
                     headers: {
                         Accept: "application/json",
+                        Authorization: `Bearer ${token.value}`
                     }
                 }
             );
@@ -258,22 +367,70 @@ watch(proveedorBusqueda, async (nuevoValor) => {
     }
 });
 
+// ✅ Función que selecciona los datos del proveedor elegido en el input de proveedor
 const seleccionarProveedor = (prov) => {
     proveedorBusqueda.value = prov.nombres + ' - ' + prov.nit;
     proveedorId.value = prov.id;
     mostrarLista.value = false;
 };
 
+// ✅ Función para ocultar la lista
 const ocultarLista = () => {
     setTimeout(() => {
         mostrarLista.value = false;
     }, 200);
 };
 
+// Función para manejar el cierre de sesión
+function logout() {
+  localStorage.clear();
+  router.push('/'); // Redirigir al login
+};
+
+// ✅ Función que redirige al a página principal
+function redirigir_home() {
+  router.push('/registro'); // Redirigir al dashboard
+};
+
+// ✅ Función para limpiar campos
+const limpiar = () => {
+    nivel_formacion.value = null;
+    tipo_actividad.value = null;
+    tema.value = '';
+    origen.value = '';
+    objetivo_general.value = '';
+    objetivo_especifico.value = '';
+    competencia_corporativa.value = null;
+    competencia_rol.value = null;
+    competencia_posicion.value = null;
+    modalidad.value = null;
+    duracion_horas.value = 0;
+    duracion_minutos.value = 0;
+    metodologia.value = '';
+    tipo.value = null;
+    proveedorBusqueda.value = '';
+    proveedorId.value = '';
+    macroproceso.value = null;
+    publico_objetivo.value = null;
+    ciudad.value = null;
+    evaluacion.value = '';
+    seguimiento.value = '';
+    fecha_inicio.value = null;
+    fecha_fin.value = null;
+};
+
+// ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
     nombre.value = localStorage.getItem("nombre");
     cedula.value = localStorage.getItem("cedula");
+
+    modalInstance.value = new Modal(exitoModal);
+    modalErrorInstance.value = new Modal(errorModal);
+
+    if (!token.value) {
+        router.push('/'); // Redirigir al login si no hay token
+    }
 
     cargarDatos();
 });
