@@ -4,12 +4,12 @@
 
         <div class="container">
             <div class="header">
-                <h1>Registro de Formaciones</h1>
-                <input type="text" placeholder="Buscar formación..." class="search-input" @input="mostrarFormaciones" v-model="busqueda">
+                <h1>Busqueda de Formaciones</h1>
+                <input type="text" placeholder="Buscar formación..." class="search-input" @input="filtrarFormaciones" v-model="busqueda">
             </div>
             <div class="form-container">
                 <div class="card-container">
-                    <div v-for="formacion in list_formaciones" :key="formacion.id" class="card">
+                    <div v-for="formacion in list_formaciones" :key="formacion.id" class="card" @click="editarFormacion(formacion.id)">
                         <h5>{{ formacion.codigo }} - {{ formacion.tema }}</h5>
                         <p><b>Modalidad: </b>{{ formacion.modalidad }}</p>
                         <p><b>Fecha Inicio: </b>{{ formacion.fecha_inicio }}</p>
@@ -68,7 +68,7 @@
 <script setup>
 import apiUrl from "../../config.js";
 import LayoutView from '../views/Layouts/LayoutView.vue';
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { Modal } from 'bootstrap';
@@ -90,16 +90,16 @@ const errorMsg = ref("");
 
 const router = useRouter();
 
-// ✅ Watcher que esta pendiente si hay un cambio en el campo de busqueda
-watch(busqueda, async (nuevoValor) => {
+// ✅ Función para filtrar las formaciones
+const filtrarFormaciones = async () => {
     if (!token.value) {
         router.push('/'); // Redirigir al login si no hay token
     }
-    if (nuevoValor.length >= 2) { // Iniciar búsqueda después de 2 caracteres
+    if (busqueda.value.length >= 2) { // Iniciar búsqueda después de 2 caracteres
         try {
             const response = await axios.post(`${apiUrl}/get_formaciones`, 
                 {
-                    valor: nuevoValor
+                    valor: busqueda.value
                 },
                 {
                     headers: {
@@ -108,19 +108,19 @@ watch(busqueda, async (nuevoValor) => {
                     }
                 }
             );
-            list_formaciones.value = response.data.data; // Suponiendo que la API devuelve [{id: 1, nombre: "Proveedor 1"}, ...]
+            list_formaciones.value = response.data.data;
         } catch (error) {
             console.error("Error en la búsqueda:", error);
         }
     } else {
         list_formaciones.value = [];
     }
-});
+};
 
-// ✅ Función que muestra la lista de formaciones de 3 en 3
-const mostrarFormaciones = computed(() => {
-    return list_formaciones.value.slice(0, 3); // Cambia el número 3 por el número de cards que quieras mostrar
-});
+const editarFormacion = (id) => {
+    router.push({ name: 'editar-formacion', params: { id } });
+};
+
 
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
@@ -190,6 +190,7 @@ onMounted(() => {
 
 .card:hover {
     transform: scale(1.05);
+    cursor: pointer;
 }
   
 </style>

@@ -98,10 +98,10 @@
     transition: background 0.3s;
   }
 
-nav ul li .router-link-active {
-  background: #454866; /* Color de fondo cuando está activo */
-  font-weight: bold;
-}
+  nav ul li .router-link-active {
+    background: #454866; /* Color de fondo cuando está activo */
+    font-weight: bold;
+  }
   
   nav ul li a:hover,
   .active {
@@ -110,6 +110,17 @@ nav ul li .router-link-active {
   
   .logout {
     background: #772017;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+    transition: 0.4s;
+  }
+
+  .logout:hover {
+    background: #a73a2e;
     color: white;
     border: none;
     padding: 10px;

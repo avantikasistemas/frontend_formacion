@@ -4,161 +4,92 @@
 
         <div class="container">
             <div class="form-container">
-                <h2>Registrar Nueva Formación</h2>
-                <form @submit.prevent="guardarFormacion" class="form-flex">
+                <h2>Editar Formación</h2>
+                <form @submit.prevent="" class="form-flex">
                     <div class="form-group">
                         <label>Nivel de Formación:</label>
-                        <select class="input-field" v-model="nivel_formacion">
-                            <option :value="null">Seleccione...</option>
-                            <option v-for="niv_form in list_tipo_nivel_formacion" :value="niv_form.id">{{ niv_form.nombre }}</option>
-                        </select>
+                        <input type="text" class="input-field" v-model="nivel_formacion" readonly>
                     </div>
                     <div class="form-group">
                         <label>Tipo de Actividad:</label>
-                        <select class="input-field" v-model="tipo_actividad">
-                            <option :value="null">Seleccione...</option>
-                            <option v-for="tip_act in list_tipo_actividad" :value="tip_act.id">{{ tip_act.nombre }}</option>
-                        </select>
+                        <input type="text" class="input-field" v-model="tipo_actividad" readonly>
                     </div>
                     <div class="form-group">
                         <label>Tema:</label>
-                        <input type="text" class="input-field" v-model="tema" required>
+                        <textarea
+                            v-model="tema"
+                            class="input-field"
+                            readonly
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Origen de la Necesidad:</label>
-                        <input type="text" class="input-field" v-model="origen" required>
+                        <textarea
+                            v-model="origen"
+                            class="input-field"
+                            readonly
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Objetivo General:</label>
-                        <input type="text" class="input-field" v-model="objetivo_general" required>
+                        <textarea
+                            v-model="objetivo_general"
+                            class="input-field"
+                            readonly
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Objetivos Específicos:</label>
-                        <input type="text" class="input-field" v-model="objetivo_especifico" required>
+                        <textarea
+                            v-model="objetivo_especifico"
+                            class="input-field"
+                            readonly
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Competencias Corporativas:</label>
-                        <div class="custom-select" @click="toggleDropdown('corp')">
-                            <div class="selected-options" >
-                                <span v-for="id in competencia_corporativa" :key="id">
-                                {{ getCompetenciaNombre(id, 'corp') }} ✓
-                                </span>
-                            </div>
-                             <!-- Dropdown de opciones -->
-                            <div class="dropdown" v-if="dropdownVisibleCorp">
-                                <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('corp')">
-                                TODOS
-                                <span v-if="isAllSelected">✓</span>
-                                </div>
-
-                                <!-- Opciones dinámicas -->
-                                <div v-for="compe_corp in list_competencia_corporativa" 
-                                    :key="compe_corp.id" 
-                                    class="dropdown-item" 
-                                    @click.stop="toggleSelection(compe_corp.id, 'corp')">
-                                {{ compe_corp.orden }}. {{ compe_corp.nombre }}
-                                <span v-if="competencia_corporativa.includes(compe_corp.id)">✓</span>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="input-field" v-model="competencia_corporativa">
+                            <option :value="null">Seleccione...</option>
+                            <option v-for="compe_corp in list_competencia_corporativa" :value="compe_corp.id">{{ compe_corp.orden }}. {{ compe_corp.nombre }}</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Competencias de Rol:</label>
-                        <div class="custom-select" @click="toggleDropdown('rol')">
-                            <div class="selected-options">
-                                <span v-for="id in competencia_rol" :key="id">
-                                {{ getCompetenciaNombre(id, 'rol') }} ✓
-                                </span>
-                            </div>
-                             <!-- Dropdown de opciones -->
-                            <div class="dropdown" v-if="dropdownVisibleRol">
-                                <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('rol')">
-                                TODOS
-                                <span v-if="isAllSelectedRol">✓</span>
-                                </div>
-
-                                <!-- Opciones dinámicas -->
-                                <div v-for="compe_rol in list_competencia_rol" 
-                                    :key="compe_rol.id" 
-                                    class="dropdown-item" 
-                                    @click.stop="toggleSelection(compe_rol.id, 'rol')">
-                                {{ compe_rol.orden }}. {{ compe_rol.nombre }}
-                                <span v-if="competencia_rol.includes(compe_rol.id)">✓</span>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="input-field" v-model="competencia_rol">
+                            <option :value="null">Seleccione...</option>
+                            <option v-for="compe_rol in list_competencia_rol" :value="compe_rol.id">{{ compe_rol.orden }}. {{ compe_rol.nombre }}</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Competencias de Posición:</label>
-                        <div class="custom-select" @click="toggleDropdown('pos')">
-                            <div class="selected-options">
-                                <span v-for="id in competencia_posicion" :key="id">
-                                {{ getCompetenciaNombre(id, 'pos') }} ✓
-                                </span>
-                            </div>
-                             <!-- Dropdown de opciones -->
-                            <div class="dropdown" v-if="dropdownVisiblePos">
-                                <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('pos')">
-                                TODOS
-                                <span v-if="isAllSelectedPos">✓</span>
-                                </div>
-
-                                <!-- Opciones dinámicas -->
-                                <div v-for="compe_pos in list_competencia_posicion" 
-                                    :key="compe_pos.id" 
-                                    class="dropdown-item" 
-                                    @click.stop="toggleSelection(compe_pos.id, 'pos')">
-                                {{ compe_pos.orden }}. {{ compe_pos.nombre }}
-                                <span v-if="competencia_posicion.includes(compe_pos.id)">✓</span>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="input-field" v-model="competencia_posicion">
+                            <option :value="null">Seleccione...</option>
+                            <option v-for="compe_pos in list_competencia_posicion" :value="compe_pos.id">{{ compe_pos.orden }}. {{ compe_pos.nombre }}</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Modalidad:</label>
-                        <select class="input-field" v-model="modalidad">
-                            <option :value="null">Seleccione...</option>
-                            <option v-for="tip_mod in list_tipo_modalidad" :value="tip_mod.id">{{ tip_mod.nombre }}</option>
-                        </select>
+                        <input type="text" class="input-field" v-model="modalidad" readonly>
                     </div>
                     <div class="form-group">
                         <label>Duración Horas:</label>
-                        <input type="number" class="input-field" v-model="duracion_horas" required>
+                        <input type="number" class="input-field" v-model="duracion_horas" readonly>
                     </div>
                     <div class="form-group">
                         <label>Duración Minutos:</label>
-                        <input type="number" class="input-field" v-model="duracion_minutos" required>
+                        <input type="number" class="input-field" v-model="duracion_minutos" readonly>
                     </div>
                     <div class="form-group">
                         <label>Metodología y Contenido:</label>
-                        <input type="text" class="input-field" v-model="metodologia" required>
+                        <input type="text" class="input-field" v-model="metodologia" readonly>
                     </div>
                     <div class="form-group">
                         <label>Tipo:</label>
-                        <select class="input-field" v-model="tipo">
-                            <option :value="null">Seleccione...</option>
-                            <option :value="1">INTERNO</option>
-                            <option :value="2">EXTERNO</option>
-                        </select>
+                        <input type="text" class="input-field" v-model="tipo" readonly>
                     </div>
                     <div class="form-group">
                         <label>Proveedor:</label>
-                        <input 
-                            type="text" 
-                            class="input-field" 
-                            v-model="proveedorBusqueda" 
-                            @focus="mostrarLista = true" 
-                            @blur="ocultarLista"
-                            placeholder="Escriba el proveedor..."
-                        >
-                        <ul v-if="mostrarLista && proveedores.length" class="dropdown-list">
-                            <li v-for="prov in proveedores" :key="prov.id" @mousedown="seleccionarProveedor(prov)">
-                                {{ prov.nombres }} - {{ prov.nit }}
-                            </li>
-                        </ul>
+                        <input type="text" class="input-field" v-model="proveedorBusqueda" readonly>
                     </div>
                     <div class="form-group">
                         <label>Macroproceso:</label>
@@ -183,11 +114,19 @@
                     </div>
                     <div class="form-group">
                         <label>Evaluación:</label>
-                        <input type="text" class="input-field" v-model="evaluacion" required>
+                        <textarea
+                            v-model="evaluacion"
+                            class="input-field"
+                            required
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Seguimiento y Retroalimentación:</label>
-                        <input type="text" class="input-field" v-model="seguimiento" required>
+                        <textarea
+                            v-model="seguimiento"
+                            class="input-field"
+                            required
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label>Fecha de Inicio de Formación:</label>
@@ -249,8 +188,8 @@
 <script setup>
 import apiUrl from "../../config.js";
 import LayoutView from '../views/Layouts/LayoutView.vue';
-import { ref, onMounted, watch, computed } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import { Modal } from 'bootstrap';
 
@@ -258,18 +197,18 @@ const token = ref("");
 const nombre = ref("");
 const cedula = ref("");
 
-const dropdownVisibleCorp = ref(false);
-const dropdownVisibleRol = ref(false);
-const dropdownVisiblePos = ref(false);
+const formacion_id = ref("");
+const data_formacion = ref(null);
+
 const nivel_formacion = ref(null);
 const tipo_actividad = ref(null);
 const tema = ref("");
 const origen = ref("");
 const objetivo_general = ref("");
 const objetivo_especifico = ref("");
-const competencia_corporativa = ref([]);
-const competencia_rol = ref([]);
-const competencia_posicion = ref([]);
+const competencia_corporativa = ref(null);
+const competencia_rol = ref(null);
+const competencia_posicion = ref(null);
 const modalidad = ref(null);
 const duracion_horas = ref(0);
 const duracion_minutos = ref(0);
@@ -308,6 +247,60 @@ const msg = ref("");
 const errorMsg = ref("");
 
 const router = useRouter();
+const route = useRoute();
+
+// ✅ Función que llama a la api para guardar la formación
+const getFormacion = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        const response = await axios.post(
+            `${apiUrl}/get_formacion_by_id`, 
+            {
+                formacion_id: formacion_id.value,
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        console.log(response);
+        if (response.status === 200) {
+            nivel_formacion.value = response.data.data.nivel_formacion_nombre;
+            tipo_actividad.value = response.data.data.tipo_actividad_nombre;
+            tema.value = response.data.data.tema;
+            origen.value = response.data.data.origen;
+            objetivo_general.value = response.data.data.objetivo_general;
+            objetivo_especifico.value = response.data.data.objetivo_especifico;
+            modalidad.value = response.data.data.modalidad_nombre;
+            duracion_horas.value = response.data.data.duracion_horas;
+            duracion_minutos.value = response.data.data.duracion_minutos;
+            metodologia.value = response.data.data.metodologia;
+            tipo.value = response.data.data.tipo_nombre;
+            proveedorBusqueda.value = response.data.data.proveedor_nombre;
+            ciudad.value = response.data.data.ciudad;
+            evaluacion.value = response.data.data.evaluacion;
+            seguimiento.value = response.data.data.seguimiento;
+            fecha_inicio.value = response.data.data.fecha_inicio;
+            fecha_fin.value = response.data.data.fecha_fin;
+        }
+
+    } catch (error) {
+        console.error('Error al obtener formación:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }    
+};
 
 // ✅ Función que llama a la api para guardar la formación
 const guardarFormacion = async () => {
@@ -315,28 +308,24 @@ const guardarFormacion = async () => {
         if (!token.value) {
             router.push('/'); // Redirigir al login si no hay token
         }
-        console.log(competencia_corporativa.value);
-        console.log(competencia_rol.value);
-        console.log(competencia_posicion.value);
-        return ""
         const response = await axios.post(
             `${apiUrl}/guardar_formacion`, 
             {
                 nivel_formacion: nivel_formacion.value,
                 tipo_actividad: tipo_actividad.value,
-                tema: tema.value.trim(),
-                origen: origen.value.trim(),
-                objetivo_general: objetivo_general.value.trim(),
-                objetivo_especifico: objetivo_especifico.value.trim(),
+                tema: tema.value,
+                origen: origen.value,
+                objetivo_general: objetivo_general.value,
+                objetivo_especifico: objetivo_especifico.value,
                 modalidad: modalidad.value,
                 duracion_horas: duracion_horas.value,
                 duracion_minutos: duracion_minutos.value,
-                metodologia: metodologia.value.trim(),
+                metodologia: metodologia.value,
                 tipo: tipo.value,
                 proveedor: proveedorId.value,
                 ciudad: ciudad.value,
-                evaluacion: evaluacion.value.trim(),
-                seguimiento: seguimiento.value.trim(),
+                evaluacion: evaluacion.value,
+                seguimiento: seguimiento.value,
                 fecha_inicio: fecha_inicio.value,
                 fecha_fin: fecha_fin.value,
             },
@@ -448,90 +437,6 @@ const ocultarLista = () => {
     }, 200);
 };
 
-const toggleDropdown = (type) => {
-    if (type == 'corp'){
-        dropdownVisibleCorp.value = !dropdownVisibleCorp.value;
-    }else if (type == 'rol'){
-        dropdownVisibleRol.value = !dropdownVisibleRol.value;
-    }else if (type == 'pos'){
-        dropdownVisiblePos.value = !dropdownVisiblePos.value;
-    }
-};
-
-const toggleSelection = (id, type) => {
-    if (type == 'corp'){
-        const index = competencia_corporativa.value.indexOf(id);
-        if (index === -1) {
-          competencia_corporativa.value.push(id);
-        } else {
-          competencia_corporativa.value.splice(index, 1);
-        }
-    } else if (type == 'rol'){
-        const index2 = competencia_rol.value.indexOf(id);
-        if (index2 === -1) {
-          competencia_rol.value.push(id);
-        } else {
-          competencia_rol.value.splice(index2, 1);
-        }
-    } else if (type == 'pos'){
-        const index3 = competencia_posicion.value.indexOf(id);
-        if (index3 === -1) {
-          competencia_posicion.value.push(id);
-        } else {
-          competencia_posicion.value.splice(index3, 1);
-        }
-    }
-};
-
-const getCompetenciaNombre = (id, type) => {
-    if (type == 'corp'){
-        const competencia = list_competencia_corporativa.value.find(c => c.id === id);
-        return competencia ? competencia.nombre : "";
-    }else if (type == 'rol'){
-        const rol = list_competencia_rol.value.find(d => d.id === id);
-        return rol ? rol.nombre : "";
-    }else if (type == 'pos'){
-        const posi = list_competencia_posicion.value.find(e => e.id === id);
-        return posi ? posi.nombre : "";
-    } 
-};
-
-// Computed para verificar si todas están seleccionadas
-const isAllSelected = computed(() => 
-    competencia_corporativa.value.length === list_competencia_corporativa.value.length
-);
-
-const isAllSelectedRol = computed(() => 
-    competencia_rol.value.length === list_competencia_rol.value.length
-);
-
-const isAllSelectedPos = computed(() => 
-    competencia_posicion.value.length === list_competencia_posicion.value.length
-);
-
-// Función para seleccionar/deseleccionar todas las opciones
-const toggleAll = (type) => {
-    if (type == 'corp'){
-        if (isAllSelected.value) {
-            competencia_corporativa.value = []; // Si ya estaban todas, vaciar
-        } else {
-            competencia_corporativa.value = list_competencia_corporativa.value.map(c => c.id); // Seleccionar todas
-        }
-    } else if (type == 'rol'){
-        if (isAllSelectedRol.value) {
-            competencia_rol.value = []; // Si ya estaban todas, vaciar
-        } else {
-            competencia_rol.value = list_competencia_rol.value.map(d => d.id); // Seleccionar todas
-        }
-    } else if (type == 'pos'){
-        if (isAllSelectedPos.value) {
-            competencia_posicion.value = []; // Si ya estaban todas, vaciar
-        } else {
-            competencia_posicion.value = list_competencia_posicion.value.map(e => e.id); // Seleccionar todas
-        }
-    }
-};
-
 // Función para manejar el cierre de sesión
 function logout() {
   localStorage.clear();
@@ -570,18 +475,13 @@ const limpiar = () => {
     fecha_fin.value = null;
 };
 
-// Cierra todos los dropdowns al hacer clic fuera
-const closeDropdowns = () => {
-  dropdownVisibleCorp.value = false;
-  dropdownVisibleRol.value = false;
-  dropdownVisiblePos.value = false;
-};
-
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
     nombre.value = localStorage.getItem("nombre");
     cedula.value = localStorage.getItem("cedula");
+
+    formacion_id.value = route.params.id; // Capturar el ID de la URL
 
     modalInstance.value = new Modal(exitoModal);
     modalErrorInstance.value = new Modal(errorModal);
@@ -591,6 +491,7 @@ onMounted(() => {
     }
 
     cargarDatos();
+    getFormacion();
 });
 </script>
   
@@ -639,44 +540,6 @@ onMounted(() => {
     color: #4b5563;
     margin-bottom: 4px;
 }
-
-.custom-select {
-  position: relative;
-  width: 100%;
-  min-height: 37px;
-  border-radius: 4px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  background: white;
-}
-.selected-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  border: 1px solid #ccc;
-  background: white;
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
-}
-.dropdown-item {
-  padding: 8px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-}
-.dropdown-item:hover {
-  background: #f0f0f0;
-}
-
-
 .input-field {
     width: 100%;
     padding: 8px;
