@@ -40,14 +40,15 @@
                         <label>Competencias Corporativas:</label>
                         <div class="custom-select" @click="toggleDropdown('corp')">
                             <div class="selected-options" >
-                                <span v-for="id in competencia_corporativa" :key="id">
+                                <span v-if="isAllSelected">TODOS ✓</span>
+                                <span v-else v-for="id in selected_competencia_corporativa" :key="id">
                                 {{ getCompetenciaNombre(id, 'corp') }} ✓
                                 </span>
                             </div>
                              <!-- Dropdown de opciones -->
-                            <div class="dropdown" v-if="dropdownVisibleCorp">
+                            <div class="dropdown" v-if="dropdownVisibleCorp" @click.stop>
                                 <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('corp')">
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelected }" @click.stop="toggleAll('corp')">
                                 TODOS
                                 <span v-if="isAllSelected">✓</span>
                                 </div>
@@ -56,9 +57,10 @@
                                 <div v-for="compe_corp in list_competencia_corporativa" 
                                     :key="compe_corp.id" 
                                     class="dropdown-item" 
+                                    :class="{ 'selected': selected_competencia_corporativa.includes(compe_corp.id) }"
                                     @click.stop="toggleSelection(compe_corp.id, 'corp')">
                                 {{ compe_corp.orden }}. {{ compe_corp.nombre }}
-                                <span v-if="competencia_corporativa.includes(compe_corp.id)">✓</span>
+                                <span v-if="selected_competencia_corporativa.includes(compe_corp.id)">✓</span>
                                 </div>
                             </div>
                         </div>
@@ -67,14 +69,15 @@
                         <label>Competencias de Rol:</label>
                         <div class="custom-select" @click="toggleDropdown('rol')">
                             <div class="selected-options">
-                                <span v-for="id in competencia_rol" :key="id">
+                                <span v-if="isAllSelectedRol">TODOS ✓</span>
+                                <span v-else v-for="id in selected_competencia_rol" :key="id">
                                 {{ getCompetenciaNombre(id, 'rol') }} ✓
                                 </span>
                             </div>
                              <!-- Dropdown de opciones -->
                             <div class="dropdown" v-if="dropdownVisibleRol">
                                 <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('rol')">
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedRol }"  @click.stop="toggleAll('rol')">
                                 TODOS
                                 <span v-if="isAllSelectedRol">✓</span>
                                 </div>
@@ -82,10 +85,11 @@
                                 <!-- Opciones dinámicas -->
                                 <div v-for="compe_rol in list_competencia_rol" 
                                     :key="compe_rol.id" 
-                                    class="dropdown-item" 
+                                    class="dropdown-item"
+                                    :class="{ 'selected': selected_competencia_rol.includes(compe_rol.id) }"
                                     @click.stop="toggleSelection(compe_rol.id, 'rol')">
                                 {{ compe_rol.orden }}. {{ compe_rol.nombre }}
-                                <span v-if="competencia_rol.includes(compe_rol.id)">✓</span>
+                                <span v-if="selected_competencia_rol.includes(compe_rol.id)">✓</span>
                                 </div>
                             </div>
                         </div>
@@ -94,14 +98,15 @@
                         <label>Competencias de Posición:</label>
                         <div class="custom-select" @click="toggleDropdown('pos')">
                             <div class="selected-options">
-                                <span v-for="id in competencia_posicion" :key="id">
+                                <span v-if="isAllSelectedPos">TODOS ✓</span>
+                                <span v-else v-for="id in selected_competencia_posicion" :key="id">
                                 {{ getCompetenciaNombre(id, 'pos') }} ✓
                                 </span>
                             </div>
                              <!-- Dropdown de opciones -->
                             <div class="dropdown" v-if="dropdownVisiblePos">
                                 <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" @click.stop="toggleAll('pos')">
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedPos }"  @click.stop="toggleAll('pos')">
                                 TODOS
                                 <span v-if="isAllSelectedPos">✓</span>
                                 </div>
@@ -110,9 +115,10 @@
                                 <div v-for="compe_pos in list_competencia_posicion" 
                                     :key="compe_pos.id" 
                                     class="dropdown-item" 
+                                    :class="{ 'selected': selected_competencia_posicion.includes(compe_pos.id) }"
                                     @click.stop="toggleSelection(compe_pos.id, 'pos')">
                                 {{ compe_pos.orden }}. {{ compe_pos.nombre }}
-                                <span v-if="competencia_posicion.includes(compe_pos.id)">✓</span>
+                                <span v-if="selected_competencia_posicion.includes(compe_pos.id)">✓</span>
                                 </div>
                             </div>
                         </div>
@@ -162,10 +168,32 @@
                     </div>
                     <div class="form-group">
                         <label>Macroproceso:</label>
-                        <select class="input-field" v-model="macroproceso">
-                            <option :value="null">Seleccione...</option>
-                            <option v-for="tip_macro in list_macroprocesos" :value="tip_macro.id">{{ tip_macro.nombre }}</option>
-                        </select>
+                        <div class="custom-select" @click="toggleDropdown('macro')">
+                            <div class="selected-options" >
+                                <span v-if="isAllSelectedMacro">TODOS ✓</span>
+                                <span v-else v-for="id in selected_macroproceso" :key="id">
+                                {{ getCompetenciaNombre(id, 'macro') }} ✓
+                                </span>
+                            </div>
+                             <!-- Dropdown de opciones -->
+                            <div class="dropdown" v-if="dropdownVisibleMacro" @click.stop>
+                                <!-- Opción "TODOS" -->
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedMacro }" @click.stop="toggleAll('macro')">
+                                TODOS
+                                <span v-if="isAllSelectedMacro">✓</span>
+                                </div>
+
+                                <!-- Opciones dinámicas -->
+                                <div v-for="macro in list_macroprocesos" 
+                                    :key="macro.id" 
+                                    class="dropdown-item" 
+                                    :class="{ 'selected': selected_macroproceso.includes(macro.id) }"
+                                    @click.stop="toggleSelection(macro.id, 'macro')">
+                                    {{ macro.nombre }}
+                                <span v-if="selected_macroproceso.includes(macro.id)">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Público Objetivo:</label>
@@ -261,15 +289,18 @@ const cedula = ref("");
 const dropdownVisibleCorp = ref(false);
 const dropdownVisibleRol = ref(false);
 const dropdownVisiblePos = ref(false);
+const dropdownVisibleMacro = ref(false);
+
 const nivel_formacion = ref(null);
 const tipo_actividad = ref(null);
 const tema = ref("");
 const origen = ref("");
 const objetivo_general = ref("");
 const objetivo_especifico = ref("");
-const competencia_corporativa = ref([]);
-const competencia_rol = ref([]);
-const competencia_posicion = ref([]);
+const selected_competencia_corporativa = ref([]);
+const selected_competencia_rol = ref([]);
+const selected_competencia_posicion = ref([]);
+const selected_macroproceso = ref([]);
 const modalidad = ref(null);
 const duracion_horas = ref(0);
 const duracion_minutos = ref(0);
@@ -315,9 +346,10 @@ const guardarFormacion = async () => {
         if (!token.value) {
             router.push('/'); // Redirigir al login si no hay token
         }
-        console.log(competencia_corporativa.value);
-        console.log(competencia_rol.value);
-        console.log(competencia_posicion.value);
+        console.log(selected_competencia_corporativa.value);
+        console.log(selected_competencia_rol.value);
+        console.log(selected_competencia_posicion.value);
+        console.log(selected_macroproceso.value);
         return ""
         const response = await axios.post(
             `${apiUrl}/guardar_formacion`, 
@@ -455,30 +487,39 @@ const toggleDropdown = (type) => {
         dropdownVisibleRol.value = !dropdownVisibleRol.value;
     }else if (type == 'pos'){
         dropdownVisiblePos.value = !dropdownVisiblePos.value;
+    }else if (type == 'macro'){
+        dropdownVisibleMacro.value = !dropdownVisibleMacro.value;
     }
 };
 
 const toggleSelection = (id, type) => {
     if (type == 'corp'){
-        const index = competencia_corporativa.value.indexOf(id);
+        const index = selected_competencia_corporativa.value.indexOf(id);
         if (index === -1) {
-          competencia_corporativa.value.push(id);
+          selected_competencia_corporativa.value.push(id);
         } else {
-          competencia_corporativa.value.splice(index, 1);
+          selected_competencia_corporativa.value.splice(index, 1);
         }
     } else if (type == 'rol'){
-        const index2 = competencia_rol.value.indexOf(id);
+        const index2 = selected_competencia_rol.value.indexOf(id);
         if (index2 === -1) {
-          competencia_rol.value.push(id);
+          selected_competencia_rol.value.push(id);
         } else {
-          competencia_rol.value.splice(index2, 1);
+          selected_competencia_rol.value.splice(index2, 1);
         }
     } else if (type == 'pos'){
-        const index3 = competencia_posicion.value.indexOf(id);
+        const index3 = selected_competencia_posicion.value.indexOf(id);
         if (index3 === -1) {
-          competencia_posicion.value.push(id);
+          selected_competencia_posicion.value.push(id);
         } else {
-          competencia_posicion.value.splice(index3, 1);
+          selected_competencia_posicion.value.splice(index3, 1);
+        }
+    } else if (type == 'macro'){
+        const index4 = selected_macroproceso.value.indexOf(id);
+        if (index4 === -1) {
+          selected_macroproceso.value.push(id);
+        } else {
+          selected_macroproceso.value.splice(index4, 1);
         }
     }
 };
@@ -493,41 +534,54 @@ const getCompetenciaNombre = (id, type) => {
     }else if (type == 'pos'){
         const posi = list_competencia_posicion.value.find(e => e.id === id);
         return posi ? posi.nombre : "";
+    }else if (type == 'macro'){
+        const macro = list_macroprocesos.value.find(m => m.id === id);
+        return macro ? macro.nombre : "";
     } 
 };
 
 // Computed para verificar si todas están seleccionadas
 const isAllSelected = computed(() => 
-    competencia_corporativa.value.length === list_competencia_corporativa.value.length
+    selected_competencia_corporativa.value.length === list_competencia_corporativa.value.length
 );
 
 const isAllSelectedRol = computed(() => 
-    competencia_rol.value.length === list_competencia_rol.value.length
+    selected_competencia_rol.value.length === list_competencia_rol.value.length
 );
 
 const isAllSelectedPos = computed(() => 
-    competencia_posicion.value.length === list_competencia_posicion.value.length
+    selected_competencia_posicion.value.length === list_competencia_posicion.value.length
+);
+
+const isAllSelectedMacro = computed(() => 
+    selected_macroproceso.value.length === list_macroprocesos.value.length
 );
 
 // Función para seleccionar/deseleccionar todas las opciones
 const toggleAll = (type) => {
     if (type == 'corp'){
         if (isAllSelected.value) {
-            competencia_corporativa.value = []; // Si ya estaban todas, vaciar
+            selected_competencia_corporativa.value = []; // Si ya estaban todas, vaciar
         } else {
-            competencia_corporativa.value = list_competencia_corporativa.value.map(c => c.id); // Seleccionar todas
+            selected_competencia_corporativa.value = list_competencia_corporativa.value.map(c => c.id); // Seleccionar todas
         }
     } else if (type == 'rol'){
         if (isAllSelectedRol.value) {
-            competencia_rol.value = []; // Si ya estaban todas, vaciar
+            selected_competencia_rol.value = []; // Si ya estaban todas, vaciar
         } else {
-            competencia_rol.value = list_competencia_rol.value.map(d => d.id); // Seleccionar todas
+            selected_competencia_rol.value = list_competencia_rol.value.map(d => d.id); // Seleccionar todas
         }
     } else if (type == 'pos'){
         if (isAllSelectedPos.value) {
-            competencia_posicion.value = []; // Si ya estaban todas, vaciar
+            selected_competencia_posicion.value = []; // Si ya estaban todas, vaciar
         } else {
-            competencia_posicion.value = list_competencia_posicion.value.map(e => e.id); // Seleccionar todas
+            selected_competencia_posicion.value = list_competencia_posicion.value.map(e => e.id); // Seleccionar todas
+        }
+    } else if (type == 'macro'){
+        if (isAllSelectedMacro.value) {
+            selected_macroproceso.value = []; // Si ya estaban todas, vaciar
+        } else {
+            selected_macroproceso.value = list_macroprocesos.value.map(m => m.id); // Seleccionar todas
         }
     }
 };
@@ -551,9 +605,9 @@ const limpiar = () => {
     origen.value = '';
     objetivo_general.value = '';
     objetivo_especifico.value = '';
-    competencia_corporativa.value = null;
-    competencia_rol.value = null;
-    competencia_posicion.value = null;
+    selected_competencia_corporativa.value = null;
+    selected_competencia_rol.value = null;
+    selected_competencia_posicion.value = null;
     modalidad.value = null;
     duracion_horas.value = 0;
     duracion_minutos.value = 0;
@@ -676,6 +730,18 @@ onMounted(() => {
   background: #f0f0f0;
 }
 
+.selected {
+    background-color: #5a4bbf;
+    color: white;
+    font-weight: bold;
+    transition: 0.4s;
+}
+
+.selected:hover {
+    background-color: #afa9da;
+    color: white;
+    font-weight: bold;
+}
 
 .input-field {
     width: 100%;
@@ -683,6 +749,7 @@ onMounted(() => {
     border: 1px solid #d1d5db;
     border-radius: 4px;
 }
+
 .submit-button {
     width: 100%;
     margin-top: 10px;
