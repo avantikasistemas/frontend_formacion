@@ -198,7 +198,6 @@ const nombre = ref("");
 const cedula = ref("");
 
 const formacion_id = ref("");
-const data_formacion = ref(null);
 
 const nivel_formacion = ref(null);
 const tipo_actividad = ref(null);
@@ -214,7 +213,6 @@ const duracion_horas = ref(0);
 const duracion_minutos = ref(0);
 const metodologia = ref("");
 const tipo = ref(null);
-const proveedor = ref(null);
 const macroproceso = ref(null);
 const publico_objetivo = ref(null);
 const ciudad = ref(null);
@@ -235,8 +233,6 @@ const list_tipo_modalidad = ref([]);
 
 const proveedorBusqueda = ref("");
 const proveedorId = ref("");
-const proveedores = ref([]);
-const mostrarLista = ref(false);
 
 const modalInstance = ref(null);
 const modalErrorInstance = ref(null);
@@ -267,7 +263,6 @@ const getFormacion = async () => {
                 }
             }
         );
-        console.log(response);
         if (response.status === 200) {
             nivel_formacion.value = response.data.data.nivel_formacion_nombre;
             tipo_actividad.value = response.data.data.tipo_actividad_nombre;
@@ -396,47 +391,6 @@ const cargarDatos = async () => {
     }
 };
 
-// ✅ Watcher que esta pendiente si hay un cambio en el campo de busqueda
-watch(proveedorBusqueda, async (nuevoValor) => {
-    if (!token.value) {
-        router.push('/'); // Redirigir al login si no hay token
-    }
-    if (nuevoValor.length >= 2) { // Iniciar búsqueda después de 2 caracteres
-        try {
-            const response = await axios.post(`${apiUrl}/get_proveedores`, 
-                {
-                    valor: nuevoValor
-                },
-                {
-                    headers: {
-                        Accept: "application/json",
-                        Authorization: `Bearer ${token.value}`
-                    }
-                }
-            );
-            proveedores.value = response.data.data; // Suponiendo que la API devuelve [{id: 1, nombre: "Proveedor 1"}, ...]
-        } catch (error) {
-            console.error("Error en la búsqueda:", error);
-        }
-    } else {
-        proveedores.value = [];
-    }
-});
-
-// ✅ Función que selecciona los datos del proveedor elegido en el input de proveedor
-const seleccionarProveedor = (prov) => {
-    proveedorBusqueda.value = prov.nombres + ' - ' + prov.nit;
-    proveedorId.value = prov.id;
-    mostrarLista.value = false;
-};
-
-// ✅ Función para ocultar la lista
-const ocultarLista = () => {
-    setTimeout(() => {
-        mostrarLista.value = false;
-    }, 200);
-};
-
 // Función para manejar el cierre de sesión
 function logout() {
   localStorage.clear();
@@ -558,22 +512,18 @@ onMounted(() => {
     transition: background 0.3s;
     font-size: 0.9em;
 }
-
 .submit-button:hover {
     background: #5a4bbf;
 }
-
 @media (max-width: 768px) {
     .form-group {
         flex: 1 1 calc(50% - 16px); /* 2 columnas en pantallas medianas */
     }
 }
-
 @media (max-width: 480px) {
     .form-group {
         flex: 1 1 100%; /* 1 columna en pantallas pequeñas */
     }
 }
-  
 </style>
   

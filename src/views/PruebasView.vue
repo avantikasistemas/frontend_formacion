@@ -48,15 +48,25 @@
                         <div class="dropdown-item" :class="{ 'selected': isAllSelectedOpciones }" @click.stop="toggleAll('opciones')">
                             TODOS <span v-if="isAllSelectedOpciones">✓</span>
                         </div>
-                        <div v-for="(grupo, key) in list_opciones" :key="key">
-                            <div class="dropdown-header">{{ key }}</div>
-                            <div v-for="opcion in grupo" :key="opcion.id" class="dropdown-item" :class="{ 'selected': selected_opciones.includes(opcion.id) }" @click.stop="toggleSelection(opcion.id, 'opcion')">
-                                {{ opcion.nombre }} <span v-if="selected_opciones.includes(opcion.id)">✓</span>
+                        <div v-for="(cargos, macroNombre) in list_opciones" :key="macroNombre">
+                            <!-- Nombre del macroproceso como título (NO seleccionable) -->
+                            <div class="dropdown-header">{{ macroNombre }}</div>
+
+                            <!-- Lista de cargos bajo cada macroproceso -->
+                            <div 
+                                v-for="cargo in cargos" 
+                                :key="cargo.id" 
+                                class="dropdown-item" 
+                                :class="{ 'selected': selected_opciones.includes(cargo.id) }" 
+                                @click.stop="toggleSelection(cargo.id, 'opcion')"
+                            >
+                                {{ cargo.nombre }} <span v-if="selected_opciones.includes(cargo.id)">✓</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <button class="btn btn-primary" @click="enviar">Enviar</button>
         </div>
     </LayoutView>
   </template>
@@ -75,6 +85,10 @@ const selected_macroproceso = ref([]);
 const selected_opciones = ref([]);
 const list_opciones = ref({});
 
+const enviar = () => {
+    console.log(selected_opciones.value);
+}
+
 const toggleDropdown = (type) => {
     if (type == 'macro') dropdownVisibleMacro.value = !dropdownVisibleMacro.value;
     if (type == 'opciones') dropdownVisibleOpciones.value = !dropdownVisibleOpciones.value;
@@ -85,6 +99,7 @@ const toggleSelection = (id, type) => {
         const index = selected_macroproceso.value.indexOf(id);
         if (index === -1) selected_macroproceso.value.push(id);
         else selected_macroproceso.value.splice(index, 1);
+        selected_macroproceso.value = [...selected_macroproceso.value];
     } else if (type == 'opcion') {
         const index = selected_opciones.value.indexOf(id);
         if (index === -1) selected_opciones.value.push(id);
@@ -99,6 +114,7 @@ const getCompetenciaNombre = (id, type) => {
     } else if (type == 'opcion') {
         for (const key in list_opciones.value) {
             const opcion = list_opciones.value[key].find(o => o.id === id);
+            console.log(opcion);
             if (opcion) return opcion.nombre;
         }
         return "";
@@ -161,13 +177,27 @@ const cargarOpcionesRelacionadas = async () => {
                 }
             }
         );
-        if (response.status === 200) list_opciones.value = response.data.data.opciones;
+        if (response.status === 200) {
+            // list_opciones.value = { ...response.data.data };
+            const datos = response.data.data;
+
+            // Reestructuramos el objeto agrupando por macroproceso
+            list_opciones.value = datos.reduce((acc, macro) => {
+                acc[macro.macro_nombre] = macro.cargos.map(cargo => ({
+                    id: cargo.cargo_id,
+                    nombre: cargo.cargo_nombre
+                }));
+                return acc;
+            }, {});
+        }
     } catch (error) {
         console.error('Error al cargar las opciones:', error);
     }
 };
 
-watch(selected_macroproceso, cargarOpcionesRelacionadas);
+watch(selected_macroproceso, (newVal, oldVal) => {
+    cargarOpcionesRelacionadas();
+});
 
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {

@@ -175,7 +175,7 @@
                                 {{ getCompetenciaNombre(id, 'macro') }} ✓
                                 </span>
                             </div>
-                             <!-- Dropdown de opciones -->
+                                <!-- Dropdown de opciones -->
                             <div class="dropdown" v-if="dropdownVisibleMacro" @click.stop>
                                 <!-- Opción "TODOS" -->
                                 <div class="dropdown-item" :class="{ 'selected': isAllSelectedMacro }" @click.stop="toggleAll('macro')">
@@ -195,19 +195,66 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Segundo Select: Opciones Relacionadas -->
                     <div class="form-group">
-                        <label>Público Objetivo:</label>
-                        <select class="input-field" v-model="publico_objetivo">
-                            <option :value="null">Seleccione...</option>
-                            <option>Presencial</option>
-                        </select>
+                        <label>Cargos:</label>
+                        <div class="custom-select" @click="toggleDropdown('opciones')">
+                            <div class="selected-options">
+                                <span v-if="isAllSelectedOpciones">TODOS ✓</span>
+                                <span v-else v-for="id in selected_opciones" :key="id">
+                                    {{ getCompetenciaNombre(id, 'opcion') }} ✓
+                                </span>
+                            </div>
+                            <div class="dropdown" v-if="dropdownVisibleOpciones" @click.stop>
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedOpciones }" @click.stop="toggleAll('opciones')">
+                                    TODOS <span v-if="isAllSelectedOpciones">✓</span>
+                                </div>
+                                <div v-for="(cargos, macroNombre) in list_opciones" :key="macroNombre">
+                                    <!-- Nombre del macroproceso como título (NO seleccionable) -->
+                                    <div class="dropdown-header"><b> {{ macroNombre }}</b></div>
+
+                                    <!-- Lista de cargos bajo cada macroproceso -->
+                                    <div 
+                                        v-for="cargo in cargos" 
+                                        :key="cargo.id" 
+                                        class="dropdown-item" 
+                                        :class="{ 'selected': selected_opciones.includes(cargo.id) }" 
+                                        @click.stop="toggleSelection(cargo.id, 'opcion')"
+                                    >
+                                        {{ cargo.nombre }} <span v-if="selected_opciones.includes(cargo.id)">✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Ciudad:</label>
-                        <select class="input-field" v-model="ciudad">
-                            <option :value="null">Seleccione...</option>
-                            <option v-for="ciudad in list_ciudades_formacion" :value="ciudad.id">{{ ciudad.nombre }}</option>
-                        </select>
+                        <div class="custom-select" @click="toggleDropdown('ciudad')">
+                            <div class="selected-options">
+                                <span v-if="isAllSelectedCiudad">TODOS ✓</span>
+                                <span v-else v-for="id in selected_ciudades" :key="id">
+                                {{ getCompetenciaNombre(id, 'ciudad') }} ✓
+                                </span>
+                            </div>
+                             <!-- Dropdown de opciones -->
+                            <div class="dropdown" v-if="dropdownVisibleCiudades">
+                                <!-- Opción "TODOS" -->
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedCiudad }"  @click.stop="toggleAll('ciudad')">
+                                TODOS
+                                <span v-if="isAllSelectedCiudad">✓</span>
+                                </div>
+
+                                <!-- Opciones dinámicas -->
+                                <div v-for="ciudad in list_ciudades_formacion" 
+                                    :key="ciudad.id" 
+                                    class="dropdown-item" 
+                                    :class="{ 'selected': selected_ciudades.includes(ciudad.id) }"
+                                    @click.stop="toggleSelection(ciudad.id, 'ciudad')">
+                                {{ ciudad.nombre }}
+                                <span v-if="selected_ciudades.includes(ciudad.id)">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Evaluación:</label>
@@ -290,6 +337,8 @@ const dropdownVisibleCorp = ref(false);
 const dropdownVisibleRol = ref(false);
 const dropdownVisiblePos = ref(false);
 const dropdownVisibleMacro = ref(false);
+const dropdownVisibleOpciones = ref(false);
+const dropdownVisibleCiudades = ref(false);
 
 const nivel_formacion = ref(null);
 const tipo_actividad = ref(null);
@@ -301,6 +350,9 @@ const selected_competencia_corporativa = ref([]);
 const selected_competencia_rol = ref([]);
 const selected_competencia_posicion = ref([]);
 const selected_macroproceso = ref([]);
+const selected_opciones = ref([]);
+const selected_ciudades = ref([]);
+const list_opciones = ref({});
 const modalidad = ref(null);
 const duracion_horas = ref(0);
 const duracion_minutos = ref(0);
@@ -314,7 +366,6 @@ const evaluacion = ref("");
 const seguimiento = ref("");
 const fecha_inicio = ref(null);
 const fecha_fin = ref(null);
-
 
 const list_tipo_nivel_formacion = ref([]);
 const list_tipo_actividad = ref([]);
@@ -346,11 +397,7 @@ const guardarFormacion = async () => {
         if (!token.value) {
             router.push('/'); // Redirigir al login si no hay token
         }
-        console.log(selected_competencia_corporativa.value);
-        console.log(selected_competencia_rol.value);
-        console.log(selected_competencia_posicion.value);
-        console.log(selected_macroproceso.value);
-        return ""
+
         const response = await axios.post(
             `${apiUrl}/guardar_formacion`, 
             {
@@ -360,13 +407,18 @@ const guardarFormacion = async () => {
                 origen: origen.value.trim(),
                 objetivo_general: objetivo_general.value.trim(),
                 objetivo_especifico: objetivo_especifico.value.trim(),
+                lista_competencia_corporativa: selected_competencia_corporativa.value,
+                lista_competencia_rol: selected_competencia_rol.value,
+                lista_competencia_posicion: selected_competencia_posicion.value,
                 modalidad: modalidad.value,
                 duracion_horas: duracion_horas.value,
                 duracion_minutos: duracion_minutos.value,
                 metodologia: metodologia.value.trim(),
                 tipo: tipo.value,
                 proveedor: proveedorId.value,
-                ciudad: ciudad.value,
+                lista_macroprocesos: selected_macroproceso.value,
+                lista_cargos: selected_opciones.value,
+                lista_ciudades: selected_ciudades.value,
                 evaluacion: evaluacion.value.trim(),
                 seguimiento: seguimiento.value.trim(),
                 fecha_inicio: fecha_inicio.value,
@@ -489,7 +541,11 @@ const toggleDropdown = (type) => {
         dropdownVisiblePos.value = !dropdownVisiblePos.value;
     }else if (type == 'macro'){
         dropdownVisibleMacro.value = !dropdownVisibleMacro.value;
-    }
+    }else if (type == 'opciones') {
+        dropdownVisibleOpciones.value = !dropdownVisibleOpciones.value;   
+    }else if (type == 'ciudad') {
+        dropdownVisibleCiudades.value = !dropdownVisibleCiudades.value; 
+    }  
 };
 
 const toggleSelection = (id, type) => {
@@ -521,6 +577,21 @@ const toggleSelection = (id, type) => {
         } else {
           selected_macroproceso.value.splice(index4, 1);
         }
+        selected_macroproceso.value = [...selected_macroproceso.value];
+    } else if (type == 'opcion') {
+        const index5 = selected_opciones.value.indexOf(id);
+        if (index5 === -1) {
+            selected_opciones.value.push(id);
+        } else {
+            selected_opciones.value.splice(index5, 1);
+        } 
+    } else if (type == 'ciudad'){
+        const index6 = selected_ciudades.value.indexOf(id);
+        if (index6 === -1) {
+          selected_ciudades.value.push(id);
+        } else {
+          selected_ciudades.value.splice(index6, 1);
+        }
     }
 };
 
@@ -537,8 +608,58 @@ const getCompetenciaNombre = (id, type) => {
     }else if (type == 'macro'){
         const macro = list_macroprocesos.value.find(m => m.id === id);
         return macro ? macro.nombre : "";
-    } 
+    }else if (type == 'opcion') {
+        for (const key in list_opciones.value) {
+            const opcion = list_opciones.value[key].find(o => o.id === id);
+            if (opcion) return opcion.nombre;
+        }
+        return "";
+    }else if (type == 'ciudad'){
+        const ciudad = list_ciudades_formacion.value.find(c => c.id === id);
+        return ciudad ? ciudad.nombre : "";
+    }
 };
+
+const cargarOpcionesRelacionadas = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        if (!selected_macroproceso.value.length) {
+            list_opciones.value = {};
+            return;
+        }
+        const response = await axios.post(`${apiUrl}/get_cargos_por_macroproceso`, 
+            { 
+                macroprocesos: selected_macroproceso.value 
+            }, 
+            {
+                headers: { 
+                    Accept: "application/json", Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 200) {
+            // list_opciones.value = { ...response.data.data };
+            const datos = response.data.data;
+
+            // Reestructuramos el objeto agrupando por macroproceso
+            list_opciones.value = datos.reduce((acc, macro) => {
+                acc[macro.macro_nombre] = macro.cargos.map(cargo => ({
+                    id: cargo.cargo_id,
+                    nombre: cargo.cargo_nombre
+                }));
+                return acc;
+            }, {});
+        }
+    } catch (error) {
+        console.error('Error al cargar las opciones:', error);
+    }
+};
+
+watch(selected_macroproceso, (newVal, oldVal) => {
+    cargarOpcionesRelacionadas();
+});
 
 // Computed para verificar si todas están seleccionadas
 const isAllSelected = computed(() => 
@@ -553,8 +674,15 @@ const isAllSelectedPos = computed(() =>
     selected_competencia_posicion.value.length === list_competencia_posicion.value.length
 );
 
-const isAllSelectedMacro = computed(() => 
-    selected_macroproceso.value.length === list_macroprocesos.value.length
+const isAllSelectedMacro = computed(() => selected_macroproceso.value.length === list_macroprocesos.value.length);
+const isAllSelectedOpciones = computed(() => {
+    if (selected_opciones.value.length === 0) return false;
+    const allOpciones = Object.values(list_opciones.value).flat().map(o => o.id);
+    return selected_opciones.value.length === allOpciones.length;
+});
+
+const isAllSelectedCiudad = computed(() => 
+    selected_ciudades.value.length === list_ciudades_formacion.value.length
 );
 
 // Función para seleccionar/deseleccionar todas las opciones
@@ -582,6 +710,15 @@ const toggleAll = (type) => {
             selected_macroproceso.value = []; // Si ya estaban todas, vaciar
         } else {
             selected_macroproceso.value = list_macroprocesos.value.map(m => m.id); // Seleccionar todas
+        }
+    } else if (type == 'opciones') {
+        const allOpciones = Object.values(list_opciones.value).flat().map(o => o.id);
+        selected_opciones.value = isAllSelectedOpciones.value ? [] : allOpciones;
+    } else if (type == 'ciudad'){
+        if (isAllSelectedCiudad.value) {
+            selected_ciudades.value = []; // Si ya estaban todas, vaciar
+        } else {
+            selected_ciudades.value = list_ciudades_formacion.value.map(c => c.id); // Seleccionar todas
         }
     }
 };
