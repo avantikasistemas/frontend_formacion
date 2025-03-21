@@ -197,7 +197,7 @@
                     </div>
                     <!-- Segundo Select: Opciones Relacionadas -->
                     <div class="form-group">
-                        <label>Cargos:</label>
+                        <label>Público Objetivo:</label>
                         <div class="custom-select" @click="toggleDropdown('opciones')">
                             <div class="selected-options">
                                 <span v-if="isAllSelectedOpciones">TODOS ✓</span>
@@ -283,7 +283,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exitoModalLabel">Modal Formación</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="goListaReportes"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         {{ msg }}
