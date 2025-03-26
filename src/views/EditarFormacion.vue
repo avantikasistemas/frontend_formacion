@@ -380,6 +380,43 @@ const cargarDatos = async () => {
     }
 };
 
+// ✅ Función para cargar el personal anteriormente guardado
+const getPersonalFormacion = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        const response = await axios.post(
+            `${apiUrl}/obtener_personal_seleccionado_formacion`, 
+            {
+                formacion_id: formacion_id.value
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        console.log(response);
+        if (response.status === 200) {
+            personalAgregado.value = response.data.data;
+        }
+
+    } catch (error) {
+        console.error('Error al cargar los datos:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }
+};
+
 // Función para manejar el cierre de sesión
 function logout() {
   localStorage.clear();
@@ -470,9 +507,6 @@ const guardarPersonal = async () => {
     }  
 };
 
-
-
-
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
@@ -490,6 +524,7 @@ onMounted(() => {
     }
     getFormacion();
     cargarDatos();
+    getPersonalFormacion();
 });
 </script>
   
