@@ -130,13 +130,20 @@
                             <option v-for="tip_mod in list_tipo_modalidad" :value="tip_mod.id">{{ tip_mod.nombre }}</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Duración Horas:</label>
-                        <input type="number" class="input-field" v-model="duracion_horas" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Duración Minutos:</label>
-                        <input type="number" class="input-field" v-model="duracion_minutos" required>
+                    <div class="form-group duracion-container">
+                        <label>Duración:</label>
+                        <div class="duracion-inputs">
+                            <input type="number" class="input-field" v-model="duracion_horas" 
+                                @input="limitarDigitos($event, 'horas')" 
+                                placeholder="Horas" 
+                                min="0" max="999"
+                                required>
+                            <input type="number" class="input-field" v-model="duracion_minutos" 
+                                @input="limitarDigitos($event, 'minutos')" 
+                                placeholder="Minutos" 
+                                min="0" max="59"
+                                required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Metodología y Contenido:</label>
@@ -266,11 +273,11 @@
                     </div>
                     <div class="form-group">
                         <label>Fecha de Inicio de Formación:</label>
-                        <input type="date" class="input-field" v-model="fecha_inicio">
+                        <input type="date" class="input-field" v-model="fecha_inicio" required>
                     </div>
                     <div class="form-group">
                         <label>Fecha de Finalización de Formación:</label>
-                        <input type="date" class="input-field" v-model="fecha_fin" :min="fecha_inicio">
+                        <input type="date" class="input-field" v-model="fecha_fin" :min="fecha_inicio" required>
                     </div>
                     <button type="submit" class="submit-button">Registrar Formación</button>
                 </form>
@@ -319,7 +326,7 @@
             </div>
         </div>
     </LayoutView>
-  </template>
+</template>
   
 <script setup>
 import apiUrl from "../../config.js";
@@ -734,6 +741,19 @@ function redirigir_home() {
   router.push('/registro'); // Redirigir al dashboard
 };
 
+const limitarDigitos = (event, tipo) => {
+    let valor = event.target.value.replace(/\D/g, ""); // Elimina caracteres no numéricos
+    if (tipo === "horas") {
+        valor = valor.slice(0, 3); // Máximo 3 dígitos
+    } else if (tipo === "minutos") {
+        valor = valor.slice(0, 2); // Máximo 2 dígitos
+        if (parseInt(valor) > 59) valor = "59"; // No permitir más de 59 minutos
+    }
+    event.target.value = valor;
+    if (tipo === "horas") duracion_horas.value = valor;
+    else duracion_minutos.value = valor;
+};
+
 // ✅ Función para limpiar campos
 const limpiar = () => {
     nivel_formacion.value = null;
@@ -829,6 +849,20 @@ onMounted(() => {
     display: block;
     color: #4b5563;
     margin-bottom: 4px;
+}
+
+.duracion-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.duracion-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.duracion-inputs input {
+    width: 50%;
 }
 
 .custom-select {

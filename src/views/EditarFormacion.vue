@@ -2,6 +2,10 @@
     <LayoutView>
         <h3> Bienvenido, {{ nombre }}</h3>
         <div class="container">
+            <!-- Botón redondo flotante -->
+            <button class="round-button" @click="mostrarFormModal = true" v-if="tipo_estado_formacion != 3">
+                <i class="fa-solid fa-plus"></i>
+            </button>
             <div class="form-container">
                 <h2>{{ tema }}</h2>
                 <form class="form-flex" @submit.prevent="actualizarFormacion">
@@ -53,22 +57,33 @@
                         <label>Seguimiento y Retroalimentación:</label>
                         <p>{{ seguimiento }}</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" v-if="tipo_estado_formacion != 3">
                         <label>Fecha de Inicio de Formación:</label>
                         <input type="date" class="input-field campo-reducido" v-model="fecha_inicio" :min="fechaActual">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" v-else>
+                        <label>Fecha de Inicio de Formación:</label>
+                        <p>{{ fecha_inicio }}</p>
+                    </div>
+                    <div class="form-group" v-if="tipo_estado_formacion != 3">
                         <label>Fecha de Finalización de Formación:</label>
                         <input type="date" class="input-field campo-reducido" v-model="fecha_fin" :min="fecha_inicio">
                     </div>
+                    <div class="form-group" v-else>
+                        <label>Fecha de Finalización de Formación:</label>
+                        <p>{{ fecha_fin }}</p>
+                    </div>
                     <div class="form-group">
                         <label>Estado de la Formación:</label>
-                        <div class="select-con-boton">
+                        <div class="select-con-boton" v-if="validar_estado_formacion != 3">
                             <select class="input-field campo-reducido" v-model="tipo_estado_formacion">
                                 <option :value="null">Seleccione...</option>
                                 <option v-for="est in list_estados_formacion" :value="est.id">{{ est.nombre }}</option>
                             </select>
                             <button type="submit" class="submit-button">Actualizar</button>
+                        </div>
+                        <div class="select-con-boton" v-else>
+                            <p>{{validar_estado_formacion_nombre}}</p>
                         </div>
                     </div>
                 </form>
@@ -81,7 +96,7 @@
                 </div>
 
                 <div class="contenedor-flex">
-                    <div class="busqueda-y-combobox">
+                    <div class="busqueda-y-combobox" v-if="tipo_estado_formacion != 3">
                         <!-- Campo de búsqueda -->
                         <input
                             type="text"
@@ -100,8 +115,28 @@
                             </option>
                         </select>
                     </div>
+                    <div class="busqueda-y-combobox" v-else>
+                        <!-- Campo de búsqueda -->
+                        <input
+                            type="text"
+                            class="input-field"
+                            v-model="busqueda"
+                            placeholder="Buscar..."
+                            readonly
+                        />
+                        <!-- Combobox (select múltiple) -->
+                        <select
+                            class="input-field combobox"
+                            v-model="seleccionados"
+                            multiple
+                        >
+                            <option v-for="persona in personalFiltrado" :value="persona" @click="seleccionarElementoIzquierda(persona)" :class="{ seleccionado: seleccionadoIzquierda?.cedula === persona.cedula }">
+                                {{ persona.nombre }} - {{ persona.cedula }}
+                            </option>
+                        </select>
+                    </div>
 
-                    <div class="div-botones">
+                    <div class="div-botones" v-if="tipo_estado_formacion != 3">
                         <!-- Botón para agregar seleccionados -->
                         <button class="submit-button inreract-btn" @click.prevent="agregarSeleccionados">
                             >
@@ -119,7 +154,7 @@
                     </div>
 
                     <!-- Segunda caja: Personal seleccionado -->
-                    <div class="personal-seleccionado">
+                    <div class="personal-seleccionado" v-if="tipo_estado_formacion != 3">
                         <div class="lista-seleccionados">
                             <ul>
                                 <li v-for="(persona, index) in personalAgregado" :key="persona.cedula">
@@ -129,8 +164,17 @@
                             </ul>
                         </div>
                     </div>
+                    <div class="personal-seleccionado" v-else>
+                        <div class="lista-seleccionados">
+                            <ul>
+                                <li v-for="(persona, index) in personalAgregado" :key="persona.cedula">
+                                    {{ persona.nombre }} - {{ persona.cedula }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="guardar-button" @click="guardarPersonal">Guardar Personal</button>
+                <button type="submit" class="guardar-button" @click="guardarPersonal" v-if="tipo_estado_formacion != 3">Guardar Personal</button>
             </div>
         </div>
 
@@ -175,13 +219,130 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal adicional para el formulario -->
+        <div class="modal-backdrop" v-if="mostrarFormModal"></div>
+            
+        <div class="custom-modal" v-if="mostrarFormModal">
+            <div class="custom-modal-content large-modal">
+                <div class="custom-modal-header">
+                    <h5>Nuevo Formulario</h5>
+                    <button @click="mostrarFormModal = false" class="custom-modal-close">×</button>
+                </div>
+                <div class="custom-modal-body">
+                    <form @submit.prevent="actualizarMacroprocesos" class="two-column-form">
+                        <!-- Columna Izquierda -->
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label>Macroproceso:</label>
+                                <div class="custom-select" @click="toggleDropdown('macro')">
+                                    <div class="selected-options">
+                                        <span v-if="isAllSelectedMacro">TODOS ✓</span>
+                                        <span v-else v-for="id in selected_macroproceso" :key="id">
+                                            {{ getCompetenciaNombre(id, 'macro') }} ✓
+                                        </span>
+                                    </div>
+                                    <div class="dropdown" v-if="dropdownVisibleMacro" @click.stop>
+                                        <div class="dropdown-item" :class="{ 'selected': isAllSelectedMacro }" @click.stop="toggleAll('macro')">
+                                            TODOS <span v-if="isAllSelectedMacro">✓</span>
+                                        </div>
+                                        <div v-for="macro in list_macroprocesos" 
+                                            :key="macro.id" 
+                                            class="dropdown-item" 
+                                            :class="{ 'selected': selected_macroproceso.includes(macro.id) }"
+                                            @click.stop="toggleSelection(macro.id, 'macro')">
+                                            {{ macro.nombre }}
+                                            <span v-if="selected_macroproceso.includes(macro.id)">✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna Derecha -->
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label>Público Objetivo:</label>
+                                <div class="custom-select" @click="toggleDropdown('opciones')">
+                                    <div class="selected-options">
+                                        <span v-if="isAllSelectedOpciones">TODOS ✓</span>
+                                        <span v-else v-for="id in selected_opciones" :key="id">
+                                            {{ getCompetenciaNombre(id, 'opcion') }} ✓
+                                        </span>
+                                    </div>
+                                    <div class="dropdown" v-if="dropdownVisibleOpciones" @click.stop>
+                                        <div class="dropdown-item" :class="{ 'selected': isAllSelectedOpciones }" @click.stop="toggleAll('opciones')">
+                                            TODOS <span v-if="isAllSelectedOpciones">✓</span>
+                                        </div>
+                                        <div v-for="(cargos, macroNombre) in list_opciones" :key="macroNombre">
+                                            <div class="dropdown-header"><b>{{ macroNombre }}</b></div>
+                                            <div 
+                                                v-for="cargo in cargos" 
+                                                :key="cargo.id" 
+                                                class="dropdown-item" 
+                                                :class="{ 'selected': selected_opciones.includes(cargo.id) }" 
+                                                @click.stop="toggleSelection(cargo.id, 'opcion')"
+                                            >
+                                                {{ cargo.nombre }} <span v-if="selected_opciones.includes(cargo.id)">✓</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                            <div class="form-group">
+                                <label id="label-blanco">Macroproceso:</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón de submit -->
+                        <div class="form-submit">
+                            <button type="submit" class="submit-button">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- Efecto de desenfoque cuando la modal está abierta -->
+        <div class="blur-overlay" v-if="mostrarFormModal"></div>
+
+
+        
     </LayoutView>
   </template>
   
 <script setup>
 import apiUrl from "../../config.js";
 import LayoutView from '../views/Layouts/LayoutView.vue';
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import { Modal } from 'bootstrap';
@@ -210,6 +371,12 @@ const seguimiento = ref("");
 const fecha_inicio = ref(null);
 const fecha_fin = ref(null);
 const fechaActual = ref(null);
+const selected_macroproceso = ref([]);
+const selected_opciones = ref([]);
+const list_opciones = ref({});
+const list_macroprocesos = ref([]);
+const validar_estado_formacion = ref(null);
+const validar_estado_formacion_nombre = ref('');
 
 const list_estados_formacion = ref([]);
 const proveedorBusqueda = ref("");
@@ -223,6 +390,11 @@ const seleccionadoIzquierda = ref(null);
 const msg = ref("");
 const errorMsg = ref("");
 
+const dropdownVisibleMacro = ref(false);
+const dropdownVisibleOpciones = ref(false);
+
+const mostrarFormModal = ref(false);
+
 // Variables reactivas
 const busqueda = ref(""); // Para almacenar el texto de búsqueda
 const list_personal = ref([]);
@@ -232,6 +404,51 @@ const personalAgregado = ref([]); // Para almacenar el personal agregado a la se
 
 const router = useRouter();
 const route = useRoute();
+
+// ✅ Función que actualiza los macroprocesos elegidos
+const actualizarMacroprocesos = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+
+        const response = await axios.post(
+            `${apiUrl}/actualizar_macroprocesos`, 
+            {
+                formacion_id: formacion_id.value,
+                lista_macroprocesos: selected_macroproceso.value,
+                lista_cargos: selected_opciones.value,
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 200) {
+            msg.value = response.data.message;
+            mostrarFormModal.value = false;
+            // modalInstance.value.show();
+            await getFormacion();
+            await cargarDatos();
+            await cargarSelects();
+            await getPersonalFormacion();
+        }
+
+    } catch (error) {
+        console.error('Error al actualizar macroprocesos:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }    
+};
 
 // Método para seleccionar un elemento en la primera caja
 const seleccionarElementoIzquierda = (persona) => {
@@ -289,6 +506,8 @@ const getFormacion = async () => {
             tipo_estado_formacion.value = response.data.data.estado_formacion;
             fecha_inicio.value = response.data.data.fecha_inicio;
             fecha_fin.value = response.data.data.fecha_fin;
+            validar_estado_formacion.value = response.data.data.estado_formacion;
+            validar_estado_formacion_nombre.value = response.data.data.estado_formacion_nombre;
         }
 
     } catch (error) {
@@ -327,7 +546,11 @@ const actualizarFormacion = async () => {
             }
         );
         if (response.status === 200) {
-            msg.value = response.data.message;
+            await getFormacion();
+            await cargarDatos();
+            await cargarSelects();
+            await getPersonalFormacion();
+            msg.value = "Formación actualizada exitosamente.";
             modalInstance.value.show();
         }
 
@@ -352,7 +575,10 @@ const cargarDatos = async () => {
             router.push('/'); // Redirigir al login si no hay token
         }
         const response = await axios.post(
-            `${apiUrl}/get_formacion_estados`, {},
+            `${apiUrl}/get_formacion_estados`, 
+            {
+                formacion_id: parseInt(formacion_id.value)
+            },
             {
                 headers: {
                     Accept: "application/json",
@@ -398,7 +624,6 @@ const getPersonalFormacion = async () => {
                 }
             }
         );
-        console.log(response);
         if (response.status === 200) {
             personalAgregado.value = response.data.data;
         }
@@ -507,6 +732,142 @@ const guardarPersonal = async () => {
     }  
 };
 
+const toggleDropdown = (type) => {
+    if (type == 'macro'){
+        dropdownVisibleMacro.value = !dropdownVisibleMacro.value;
+    }else if (type == 'opciones') {
+        dropdownVisibleOpciones.value = !dropdownVisibleOpciones.value;   
+    } 
+};
+
+const toggleSelection = (id, type) => {
+    if (type == 'macro'){
+        const index4 = selected_macroproceso.value.indexOf(id);
+        if (index4 === -1) {
+          selected_macroproceso.value.push(id);
+        } else {
+          selected_macroproceso.value.splice(index4, 1);
+        }
+        selected_macroproceso.value = [...selected_macroproceso.value];
+    } else if (type == 'opcion') {
+        const index5 = selected_opciones.value.indexOf(id);
+        if (index5 === -1) {
+            selected_opciones.value.push(id);
+        } else {
+            selected_opciones.value.splice(index5, 1);
+        } 
+    }
+};
+
+const getCompetenciaNombre = (id, type) => {
+    if (type == 'macro'){
+        const macro = list_macroprocesos.value.find(m => m.id === id);
+        return macro ? macro.nombre : "";
+    }else if (type == 'opcion') {
+        for (const key in list_opciones.value) {
+            const opcion = list_opciones.value[key].find(o => o.id === id);
+            if (opcion) return opcion.nombre;
+        }
+        return "";
+    }
+};
+
+// Función para seleccionar/deseleccionar todas las opciones
+const toggleAll = (type) => {
+    if (type == 'macro'){
+        if (isAllSelectedMacro.value) {
+            selected_macroproceso.value = []; // Si ya estaban todas, vaciar
+        } else {
+            selected_macroproceso.value = list_macroprocesos.value.map(m => m.id); // Seleccionar todas
+        }
+    } else if (type == 'opciones') {
+        const allOpciones = Object.values(list_opciones.value).flat().map(o => o.id);
+        selected_opciones.value = isAllSelectedOpciones.value ? [] : allOpciones;
+    }
+};
+
+watch(selected_macroproceso, (newVal, oldVal) => {
+    cargarOpcionesRelacionadas();
+});
+
+const cargarOpcionesRelacionadas = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        if (!selected_macroproceso.value.length) {
+            list_opciones.value = {};
+            return;
+        }
+        const response = await axios.post(`${apiUrl}/get_cargos_por_macroproceso`, 
+            { 
+                macroprocesos: selected_macroproceso.value 
+            }, 
+            {
+                headers: { 
+                    Accept: "application/json", Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 200) {
+            // list_opciones.value = { ...response.data.data };
+            const datos = response.data.data;
+
+            // Reestructuramos el objeto agrupando por macroproceso
+            list_opciones.value = datos.reduce((acc, macro) => {
+                acc[macro.macro_nombre] = macro.cargos.map(cargo => ({
+                    id: cargo.cargo_id,
+                    nombre: cargo.cargo_nombre
+                }));
+                return acc;
+            }, {});
+        }
+    } catch (error) {
+        console.error('Error al cargar las opciones:', error);
+    }
+};
+
+const isAllSelectedMacro = computed(() => selected_macroproceso.value.length === list_macroprocesos.value.length);
+const isAllSelectedOpciones = computed(() => {
+    if (selected_opciones.value.length === 0) return false;
+    const allOpciones = Object.values(list_opciones.value).flat().map(o => o.id);
+    return selected_opciones.value.length === allOpciones.length;
+});
+
+// ✅ Función para cargar los select generales del formulario
+const cargarSelects = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+        const response = await axios.post(
+            `${apiUrl}/get_parametros`, {},
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 200) {
+            msg.value = response.data.message;
+            list_macroprocesos.value = response.data.data.macroprocesos;
+        }
+
+    } catch (error) {
+        console.error('Error al cargar los datos:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }
+};
+
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
@@ -524,6 +885,7 @@ onMounted(() => {
     }
     getFormacion();
     cargarDatos();
+    cargarSelects();
     getPersonalFormacion();
 });
 </script>
@@ -534,6 +896,198 @@ onMounted(() => {
     margin: 0 auto;
     padding: 0;
 }
+
+/* Botón redondo */
+.round-button {
+    position: fixed;
+    right: 30px;
+    top: 100px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #6a5acd;
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.round-button:hover {
+    background-color: #5a4bbf;
+    transform: scale(1.1);
+}
+
+/* Efecto de desenfoque */
+.blur-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1040; /* Por encima de todo pero debajo de la modal */
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1040;
+}
+
+/* Modal grande */
+.large-modal {
+    width: 900px !important;
+    max-width: 95% !important;
+    height: auto;
+    max-height: 90vh;
+}
+
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.custom-modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 850px;
+    max-width: 92%;
+    max-height: 90vh;
+    height: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.custom-modal-header {
+    padding: 16px 24px;
+    background: #6a5acd;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.6rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.custom-modal-body {
+    padding: 25px;
+    overflow-y: auto;
+}
+
+/* Formulario de dos columnas */
+.two-column-form {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.form-column {
+    flex: 1;
+    min-width: 400px;
+}
+
+/* Asegúrate que los inputs dentro de la modal tengan buen espaciado */
+.custom-modal .form-group {
+    margin-bottom: 20px;
+}
+
+.custom-modal .input-field {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  min-height: 45px;
+  border-radius: 4px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: white;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.selected-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 25px;
+}
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  background: white;
+  z-index: 1100;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.dropdown-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dropdown-item:hover {
+  background: #f0f0f0;
+}
+
+.selected {
+    background-color: #5a4bbf;
+    color: white;
+    font-weight: bold;
+    transition: 0.4s;
+}
+
+.selected:hover {
+    background-color: #afa9da;
+    color: white;
+    font-weight: bold;
+}
+
+#label-blanco {
+    color: white !important;
+}
+
 .header, .form-container {
     background-color: #ffffff;
     padding: 24px;
