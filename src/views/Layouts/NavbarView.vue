@@ -1,7 +1,10 @@
 <template>
     <div class="main-navbar">
       <aside class="sidebar">
-        <h2>Formaciones</h2>
+        <div class="header-div">
+          <img :src="logo" :alt="logo">
+          <h2>Formaciones</h2>
+        </div>
         <nav>
           <ul>
             <li><router-link :to="{ name: 'registro'}"><i class="fa-solid fa-file"></i> Registro</router-link></li>
@@ -18,6 +21,7 @@
 
   import { ref, onMounted } from "vue";
   import { useRouter } from "vue-router";
+  import logo from '@/assets/logo.png';
   
   const token = ref("");
   const nombre = ref("");
@@ -49,6 +53,21 @@
     height: 100vh;
     overflow: hidden;
   }
+
+.header-div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.header-div img {
+    margin-right: 8px;
+    width: 32px; 
+    height: 32px;
+}
+.header-div h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
   
   .main-navbar {
     display: flex;
