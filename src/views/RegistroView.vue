@@ -273,11 +273,11 @@
                     </div>
                     <div class="form-group">
                         <label>Fecha de Inicio de Formación:</label>
-                        <input type="date" class="input-field" v-model="fecha_inicio" required>
+                        <input type="date" class="input-field" v-model="fecha_inicio">
                     </div>
                     <div class="form-group">
                         <label>Fecha de Finalización de Formación:</label>
-                        <input type="date" class="input-field" v-model="fecha_fin" :min="fecha_inicio" required>
+                        <input type="date" class="input-field" v-model="fecha_fin" :min="fecha_inicio">
                     </div>
                     <button type="submit" class="submit-button">Registrar Formación</button>
                 </form>

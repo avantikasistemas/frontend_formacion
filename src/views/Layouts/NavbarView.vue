@@ -6,8 +6,7 @@
           <ul>
             <li><router-link :to="{ name: 'registro'}"><i class="fa-solid fa-file"></i> Registro</router-link></li>
             <li><router-link :to="{ name: 'formaciones'}"><i class="fa-regular fa-folder-open"></i> Asignación de Formaciones</router-link></li>
-            <!-- <li><router-link><i class="fa-solid fa-user"></i> Perfil</router-link></li>
-            <li><router-link><i class="fa-solid fa-gear"></i> Configuraciones</router-link></li> -->
+            <li><router-link :to="{ name: 'consultas'}"><i class="fa-solid fa-magnifying-glass"></i> Consultas</router-link></li>
           </ul>
         </nav>
         <button class="logout" @click="logout">Cerrar Sesión</button>
