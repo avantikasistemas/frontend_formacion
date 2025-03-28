@@ -265,11 +265,11 @@
                     </div>
                     <div class="form-group">
                         <label>Evaluación:</label>
-                        <input type="text" class="input-field" v-model="evaluacion" required>
+                        <input type="text" class="input-field" v-model="evaluacion">
                     </div>
                     <div class="form-group">
                         <label>Seguimiento y Retroalimentación:</label>
-                        <input type="text" class="input-field" v-model="seguimiento" required>
+                        <input type="text" class="input-field" v-model="seguimiento">
                     </div>
                     <div class="form-group">
                         <label>Fecha de Inicio de Formación:</label>

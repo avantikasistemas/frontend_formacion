@@ -265,6 +265,10 @@ const consultarDatos = async () => {
             router.push('/'); // Redirigir al login si no hay token
         }
 
+        if (codigo.value) {
+            codigo.value = codigo.value.toUpperCase();
+        }
+
         if (fecha_desde.value){
             fechaDesdeFormateada.value = fecha_desde.value.replace(/-/g, ""); // Reemplaza los guiones por nada
         }
