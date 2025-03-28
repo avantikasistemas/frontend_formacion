@@ -151,7 +151,7 @@
                     </div>
                     <div class="form-group">
                         <label>Tipo:</label>
-                        <select class="input-field" v-model="tipo">
+                        <select class="input-field" v-model="tipo" required>
                             <option :value="null">Seleccione...</option>
                             <option :value="1">INTERNO</option>
                             <option :value="2">EXTERNO</option>
