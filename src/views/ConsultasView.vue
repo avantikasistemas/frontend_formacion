@@ -90,6 +90,7 @@
                                 <th>NIVEL DE FORMACIÓN</th>
                                 <th>TIPO DE ACTIVIDAD</th>
                                 <th>MODALIDAD</th>
+                                <th>DURACIÓN</th>
                                 <th>ESTADO</th>
                                 <th>PERSONAL</th>
                                 <th>MACROPROCESO</th>
@@ -108,6 +109,7 @@
                                 <td>{{ reg.nivel_formacion }}</td>
                                 <td>{{ reg.tipo_actividad }}</td>
                                 <td>{{ reg.modalidad }}</td>
+                                <td>{{ reg.duracion }}</td>
                                 <td>{{ reg.estado_formacion }}</td>
                                 <td>{{ reg.nombre }}</td>
                                 <td>{{ reg.macroproceso }}</td>

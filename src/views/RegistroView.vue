@@ -125,7 +125,7 @@
                     </div>
                     <div class="form-group">
                         <label>Modalidad:</label>
-                        <select class="input-field" v-model="modalidad">
+                        <select class="input-field" v-model="modalidad" required>
                             <option :value="null">Seleccione...</option>
                             <option v-for="tip_mod in list_tipo_modalidad" :value="tip_mod.id">{{ tip_mod.nombre }}</option>
                         </select>

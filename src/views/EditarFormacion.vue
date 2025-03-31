@@ -38,24 +38,12 @@
                         <p>{{ duracion_minutos }}</p>
                     </div>
                     <div class="form-group">
-                        <label>Metodología y Contenido:</label>
-                        <p>{{ metodologia }}</p>
-                    </div>
-                    <div class="form-group">
                         <label>Tipo:</label>
                         <p>{{ tipo }}</p>
                     </div>
                     <div class="form-group">
                         <label>Proveedor:</label>
                         <p>{{ proveedorBusqueda }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Evaluación:</label>
-                        <p>{{ evaluacion }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Seguimiento y Retroalimentación:</label>
-                        <p>{{ seguimiento }}</p>
                     </div>
                     <div class="form-group" v-if="tipo_estado_formacion != 3">
                         <label>Fecha de Inicio de Formación:</label>
@@ -85,6 +73,18 @@
                         <div class="select-con-boton" v-else>
                             <p>{{validar_estado_formacion_nombre}}</p>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Evaluación:</label>
+                        <p class="texto-ajustado">{{ evaluacion }}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Metodología y Contenido:</label>
+                        <p class="texto-ajustado">{{ metodologia }}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Seguimiento y Retroalimentación:</label>
+                        <p class="texto-ajustado">{{ seguimiento }}</p>
                     </div>
                 </form>
             </div>
@@ -330,14 +330,11 @@
             </div>
         </div>
 
-        
         <!-- Efecto de desenfoque cuando la modal está abierta -->
         <div class="blur-overlay" v-if="mostrarFormModal"></div>
 
-
-        
     </LayoutView>
-  </template>
+</template>
   
 <script setup>
 import apiUrl from "../../config.js";
@@ -1131,7 +1128,14 @@ onMounted(() => {
 
 .form-group p {
     font-size: 14px;
+    white-space: pre-wrap;
+    word-wrap: break-word;  
+    text-align: justify;    
+    max-width: 70%;       
+    overflow-wrap: break-word; 
 }
+
+
 
 .input-field {
     width: 100%;
