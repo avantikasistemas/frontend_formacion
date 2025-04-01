@@ -376,6 +376,7 @@ const limpiar = () => {
     codigo.value = '';
     tema.value = '';
     usuarioBusqueda.value = '';
+    usuarioId.value = '';
     nivel_formacion.value = null;
     tipo_actividad.value = null;
     estado_formacion.value = null;
@@ -432,6 +433,10 @@ watch(usuarioBusqueda, async (nuevoValor) => {
         }
     } else {
         usuarios_list.value = [];
+    }
+    if (nuevoValor.length == 0){
+        nuevoValor = ''
+        usuarioId.value = ''
     }
 });
 

@@ -1058,7 +1058,7 @@ onMounted(() => {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 .dropdown-item {
-  padding: 10px 15px;
+  padding: 2px 4px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1133,6 +1133,10 @@ onMounted(() => {
     text-align: justify;    
     max-width: 70%;       
     overflow-wrap: break-word; 
+}
+
+.form-group .texto-ajustado{
+    font-size: 12px;
 }
 
 

@@ -26,7 +26,32 @@
                     </div>
                     <div class="form-group">
                         <label>Origen de la Necesidad:</label>
-                        <input type="text" class="input-field" v-model="origen" required>
+                        <div class="custom-select" @click="toggleDropdown('origen')">
+                            <div class="selected-options" >
+                                <span v-if="isAllSelectedOrigen">TODOS ✓</span>
+                                <span v-else v-for="id in selectedOrigenes" :key="id">
+                                {{ getCompetenciaNombre(id, 'origen') }} ✓
+                                </span>
+                            </div>
+                             <!-- Dropdown de opciones -->
+                            <div class="dropdown" v-if="dropdownVisibleOrigen" @click.stop>
+                                <!-- Opción "TODOS" -->
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedOrigen }" @click.stop="toggleAll('origen')">
+                                TODOS
+                                <span v-if="isAllSelectedOrigen">✓</span>
+                                </div>
+
+                                <!-- Opciones dinámicas -->
+                                <div v-for="origen in list_origen" 
+                                    :key="origen.id" 
+                                    class="dropdown-item" 
+                                    :class="{ 'selected': selectedOrigenes.includes(origen.id) }"
+                                    @click.stop="toggleSelection(origen.id, 'origen')">
+                                    {{ origen.nombre }}
+                                <span v-if="selectedOrigenes.includes(origen.id)">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Objetivo General:</label>
@@ -263,9 +288,38 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label>Evaluación:</label>
                         <input type="text" class="input-field" v-model="evaluacion">
+                    </div> -->
+                    <div class="form-group">
+                        <label>Evaluación:</label>
+                        <div class="custom-select" @click="toggleDropdown('eval')">
+                            <div class="selected-options" >
+                                <span v-if="isAllSelectedEval">TODOS ✓</span>
+                                <span v-else v-for="id in selected_evaluaciones" :key="id">
+                                {{ getCompetenciaNombre(id, 'eval') }} ✓
+                                </span>
+                            </div>
+                             <!-- Dropdown de opciones -->
+                            <div class="dropdown" v-if="dropdownVisibleEval" @click.stop>
+                                <!-- Opción "TODOS" -->
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedEval }" @click.stop="toggleAll('eval')">
+                                TODOS
+                                <span v-if="isAllSelectedEval">✓</span>
+                                </div>
+
+                                <!-- Opciones dinámicas -->
+                                <div v-for="evalu in list_tipo_evaluacion" 
+                                    :key="evalu.id" 
+                                    class="dropdown-item" 
+                                    :class="{ 'selected': selected_evaluaciones.includes(evalu.id) }"
+                                    @click.stop="toggleSelection(evalu.id, 'eval')">
+                                    {{ evalu.nombre }}
+                                <span v-if="selected_evaluaciones.includes(evalu.id)">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Seguimiento y Retroalimentación:</label>
@@ -346,6 +400,8 @@ const dropdownVisiblePos = ref(false);
 const dropdownVisibleMacro = ref(false);
 const dropdownVisibleOpciones = ref(false);
 const dropdownVisibleCiudades = ref(false);
+const dropdownVisibleOrigen = ref(false);
+const dropdownVisibleEval = ref(false);
 
 const nivel_formacion = ref(null);
 const tipo_actividad = ref(null);
@@ -382,6 +438,10 @@ const list_competencia_rol = ref([]);
 const list_competencia_posicion = ref([]);
 const list_macroprocesos = ref([]);
 const list_tipo_modalidad = ref([]);
+const list_origen = ref([]);
+const list_tipo_evaluacion = ref([]);
+const selectedOrigenes = ref([]);
+const selected_evaluaciones = ref([]);
 
 const proveedorBusqueda = ref("");
 const proveedorId = ref("");
@@ -400,6 +460,7 @@ const router = useRouter();
 
 // ✅ Función que llama a la api para guardar la formación
 const guardarFormacion = async () => {
+
     try {
         if (!token.value) {
             router.push('/'); // Redirigir al login si no hay token
@@ -411,7 +472,7 @@ const guardarFormacion = async () => {
                 nivel_formacion: nivel_formacion.value,
                 tipo_actividad: tipo_actividad.value,
                 tema: tema.value.trim(),
-                origen: origen.value.trim(),
+                origen: selectedOrigenes.value,
                 objetivo_general: objetivo_general.value.trim(),
                 objetivo_especifico: objetivo_especifico.value.trim(),
                 lista_competencia_corporativa: selected_competencia_corporativa.value,
@@ -426,7 +487,7 @@ const guardarFormacion = async () => {
                 lista_macroprocesos: selected_macroproceso.value,
                 lista_cargos: selected_opciones.value,
                 lista_ciudades: selected_ciudades.value,
-                evaluacion: evaluacion.value.trim(),
+                evaluacion: selected_evaluaciones.value,
                 seguimiento: seguimiento.value.trim(),
                 fecha_inicio: fecha_inicio.value,
                 fecha_fin: fecha_fin.value,
@@ -482,6 +543,8 @@ const cargarDatos = async () => {
             list_competencia_posicion.value = response.data.data.competencia_posicion;
             list_macroprocesos.value = response.data.data.macroprocesos;
             list_tipo_modalidad.value = response.data.data.tipo_modalidad;
+            list_origen.value = response.data.data.origen_necesidad;
+            list_tipo_evaluacion.value = response.data.data.tipo_evaluacion;
         }
 
     } catch (error) {
@@ -552,7 +615,11 @@ const toggleDropdown = (type) => {
         dropdownVisibleOpciones.value = !dropdownVisibleOpciones.value;   
     }else if (type == 'ciudad') {
         dropdownVisibleCiudades.value = !dropdownVisibleCiudades.value; 
-    }  
+    }else if (type == 'origen') {
+        dropdownVisibleOrigen.value = !dropdownVisibleOrigen.value; 
+    }else if (type == 'eval') {
+        dropdownVisibleEval.value = !dropdownVisibleEval.value; 
+    } 
 };
 
 const toggleSelection = (id, type) => {
@@ -599,6 +666,20 @@ const toggleSelection = (id, type) => {
         } else {
           selected_ciudades.value.splice(index6, 1);
         }
+    } else if (type == 'origen'){
+        const index7 = selectedOrigenes.value.indexOf(id);
+        if (index7 === -1) {
+          selectedOrigenes.value.push(id);
+        } else {
+          selectedOrigenes.value.splice(index7, 1);
+        }
+    } else if (type == 'eval'){
+        const index8 = selected_evaluaciones.value.indexOf(id);
+        if (index8 === -1) {
+          selected_evaluaciones.value.push(id);
+        } else {
+          selected_evaluaciones.value.splice(index8, 1);
+        }
     }
 };
 
@@ -624,6 +705,12 @@ const getCompetenciaNombre = (id, type) => {
     }else if (type == 'ciudad'){
         const ciudad = list_ciudades_formacion.value.find(c => c.id === id);
         return ciudad ? ciudad.nombre : "";
+    }else if (type == 'origen'){
+        const origen = list_origen.value.find(o => o.id === id);
+        return origen ? origen.nombre : "";
+    }else if (type == 'eval'){
+        const evaluacion = list_tipo_evaluacion.value.find(te => te.id === id);
+        return evaluacion ? evaluacion.nombre : "";
     }
 };
 
@@ -692,6 +779,14 @@ const isAllSelectedCiudad = computed(() =>
     selected_ciudades.value.length === list_ciudades_formacion.value.length
 );
 
+const isAllSelectedOrigen = computed(() => 
+    selectedOrigenes.value.length === list_origen.value.length
+);
+
+const isAllSelectedEval = computed(() => 
+    selected_evaluaciones.value.length === list_tipo_evaluacion.value.length
+);
+
 // Función para seleccionar/deseleccionar todas las opciones
 const toggleAll = (type) => {
     if (type == 'corp'){
@@ -726,6 +821,18 @@ const toggleAll = (type) => {
             selected_ciudades.value = []; // Si ya estaban todas, vaciar
         } else {
             selected_ciudades.value = list_ciudades_formacion.value.map(c => c.id); // Seleccionar todas
+        }
+    } else if (type == 'origen'){
+        if (isAllSelectedOrigen.value) {
+            selectedOrigenes.value = []; // Si ya estaban todas, vaciar
+        } else {
+            selectedOrigenes.value = list_origen.value.map(o => o.id); // Seleccionar todas
+        }
+    } else if (type == 'eval'){
+        if (isAllSelectedEval.value) {
+            selected_evaluaciones.value = []; // Si ya estaban todas, vaciar
+        } else {
+            selected_evaluaciones.value = list_tipo_evaluacion.value.map(te => te.id); // Seleccionar todas
         }
     }
 };
@@ -878,7 +985,8 @@ onMounted(() => {
 .selected-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 2px;
+  font-size: 14px;
 }
 .dropdown {
   position: absolute;
@@ -892,10 +1000,11 @@ onMounted(() => {
   overflow-y: auto;
 }
 .dropdown-item {
-  padding: 8px;
+  padding: 2px 4px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
+  font-size: 14px;
 }
 .dropdown-item:hover {
   background: #f0f0f0;
