@@ -107,7 +107,7 @@
                         </thead>
                         <tbody>
                             <tr v-if="lista_registros.length === 0">
-                                <td colspan="9" class="no-registros">No hay registros disponibles</td>
+                                <td colspan="13" class="no-registros">No hay registros disponibles</td>
                             </tr>
                             <tr v-else v-for="(reg, index) in lista_registros" :key="index" @mouseover="selectRow(index)" :class="{ 'selected-row': index === selectedRowId }">
                                 <td>{{ reg.codigo }}</td>
