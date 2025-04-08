@@ -26,7 +26,7 @@
                     </div>
                     <div class="form-group">
                         <label>Origen de la Necesidad:</label>
-                        <div class="custom-select" @click="toggleDropdown('origen')">
+                        <div class="custom-select" @click.stop="toggleDropdown('origen')">
                             <div class="selected-options" >
                                 <span v-if="isAllSelectedOrigen">TODOS ✓</span>
                                 <span v-else v-for="id in selectedOrigenes" :key="id">
@@ -62,8 +62,77 @@
                         <input type="text" class="input-field" v-model="objetivo_especifico" required>
                     </div>
                     <div class="form-group">
+                        <label>Macroproceso:</label>
+                        <div class="custom-select" @click.stop="toggleDropdown('macro')">
+                            <div class="selected-options" >
+                                <span v-if="isAllSelectedMacro">TODOS ✓</span>
+                                <span v-else v-for="id in selected_macroproceso" :key="id">
+                                {{ getCompetenciaNombre(id, 'macro') }} ✓
+                                </span>
+                            </div>
+                                <!-- Dropdown de opciones -->
+                            <div class="dropdown" v-if="dropdownVisibleMacro" @click.stop>
+                                <!-- Opción "TODOS" -->
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedMacro }" @click.stop="toggleAll('macro')">
+                                TODOS
+                                <span v-if="isAllSelectedMacro">✓</span>
+                                </div>
+
+                                <!-- Opciones dinámicas -->
+                                <div v-for="macro in list_macroprocesos" 
+                                    :key="macro.id" 
+                                    class="dropdown-item" 
+                                    :class="{ 'selected': selected_macroproceso.includes(macro.id) }"
+                                    @click.stop="toggleSelection(macro.id, 'macro')">
+                                    {{ macro.nombre }}
+                                <span v-if="selected_macroproceso.includes(macro.id)">✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Segundo Select: Opciones Relacionadas -->
+                    <div class="form-group">
+                        <label>Público Objetivo:</label>
+                        <div class="custom-select" @click.stop="toggleDropdown('opciones')">
+                            <div class="selected-options">
+                                <span v-if="isAllSelectedOpciones">TODOS ✓</span>
+                                <span v-else v-for="id in selected_opciones" :key="id">
+                                    {{ getCompetenciaNombre(id, 'opcion') }} ✓
+                                </span>
+                            </div>
+                            <div class="dropdown" v-if="dropdownVisibleOpciones" @click.stop>
+                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedOpciones }" @click.stop="toggleAll('opciones')">
+                                    TODOS <span v-if="isAllSelectedOpciones">✓</span>
+                                </div>
+                                <div v-for="(cargos, macroNombre) in list_opciones" :key="macroNombre">
+                                    <!-- Nombre del macroproceso como título (NO seleccionable) -->
+                                    <div class="dropdown-header"><b> {{ macroNombre }}</b></div>
+
+                                    <!-- Lista de cargos bajo cada macroproceso -->
+                                    <div 
+                                        v-for="cargo in cargos" 
+                                        :key="cargo.id" 
+                                        class="dropdown-item" 
+                                        :class="{ 'selected': selected_opciones.includes(cargo.id) }" 
+                                        @click.stop="toggleSelection(cargo.id, 'opcion')"
+                                    >
+                                        {{ cargo.nombre }} <span v-if="selected_opciones.includes(cargo.id)">✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo:</label>
+                        <select class="input-field" v-model="tipo" required>
+                            <option :value="null">Seleccione...</option>
+                            <option :value="1">INTERNO</option>
+                            <option :value="2">EXTERNO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Competencias Corporativas:</label>
-                        <div class="custom-select" @click="toggleDropdown('corp')">
+                        <div class="custom-select" @click.stop="toggleDropdown('corp')">
                             <div class="selected-options" >
                                 <span v-if="isAllSelected">TODOS ✓</span>
                                 <span v-else v-for="id in selected_competencia_corporativa" :key="id">
@@ -92,7 +161,7 @@
                     </div>
                     <div class="form-group">
                         <label>Competencias de Rol:</label>
-                        <div class="custom-select" @click="toggleDropdown('rol')">
+                        <div class="custom-select" @click.stop="toggleDropdown('rol')">
                             <div class="selected-options">
                                 <span v-if="isAllSelectedRol">TODOS ✓</span>
                                 <span v-else v-for="id in selected_competencia_rol" :key="id">
@@ -121,7 +190,7 @@
                     </div>
                     <div class="form-group">
                         <label>Competencias de Posición:</label>
-                        <div class="custom-select" @click="toggleDropdown('pos')">
+                        <div class="custom-select" @click.stop="toggleDropdown('pos')">
                             <div class="selected-options">
                                 <span v-if="isAllSelectedPos">TODOS ✓</span>
                                 <span v-else v-for="id in selected_competencia_posicion" :key="id">
@@ -175,14 +244,6 @@
                         <input type="text" class="input-field" v-model="metodologia" required>
                     </div>
                     <div class="form-group">
-                        <label>Tipo:</label>
-                        <select class="input-field" v-model="tipo" required>
-                            <option :value="null">Seleccione...</option>
-                            <option :value="1">INTERNO</option>
-                            <option :value="2">EXTERNO</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label>Proveedor:</label>
                         <input 
                             type="text" 
@@ -199,69 +260,8 @@
                         </ul>
                     </div>
                     <div class="form-group">
-                        <label>Macroproceso:</label>
-                        <div class="custom-select" @click="toggleDropdown('macro')">
-                            <div class="selected-options" >
-                                <span v-if="isAllSelectedMacro">TODOS ✓</span>
-                                <span v-else v-for="id in selected_macroproceso" :key="id">
-                                {{ getCompetenciaNombre(id, 'macro') }} ✓
-                                </span>
-                            </div>
-                                <!-- Dropdown de opciones -->
-                            <div class="dropdown" v-if="dropdownVisibleMacro" @click.stop>
-                                <!-- Opción "TODOS" -->
-                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedMacro }" @click.stop="toggleAll('macro')">
-                                TODOS
-                                <span v-if="isAllSelectedMacro">✓</span>
-                                </div>
-
-                                <!-- Opciones dinámicas -->
-                                <div v-for="macro in list_macroprocesos" 
-                                    :key="macro.id" 
-                                    class="dropdown-item" 
-                                    :class="{ 'selected': selected_macroproceso.includes(macro.id) }"
-                                    @click.stop="toggleSelection(macro.id, 'macro')">
-                                    {{ macro.nombre }}
-                                <span v-if="selected_macroproceso.includes(macro.id)">✓</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Segundo Select: Opciones Relacionadas -->
-                    <div class="form-group">
-                        <label>Público Objetivo:</label>
-                        <div class="custom-select" @click="toggleDropdown('opciones')">
-                            <div class="selected-options">
-                                <span v-if="isAllSelectedOpciones">TODOS ✓</span>
-                                <span v-else v-for="id in selected_opciones" :key="id">
-                                    {{ getCompetenciaNombre(id, 'opcion') }} ✓
-                                </span>
-                            </div>
-                            <div class="dropdown" v-if="dropdownVisibleOpciones" @click.stop>
-                                <div class="dropdown-item" :class="{ 'selected': isAllSelectedOpciones }" @click.stop="toggleAll('opciones')">
-                                    TODOS <span v-if="isAllSelectedOpciones">✓</span>
-                                </div>
-                                <div v-for="(cargos, macroNombre) in list_opciones" :key="macroNombre">
-                                    <!-- Nombre del macroproceso como título (NO seleccionable) -->
-                                    <div class="dropdown-header"><b> {{ macroNombre }}</b></div>
-
-                                    <!-- Lista de cargos bajo cada macroproceso -->
-                                    <div 
-                                        v-for="cargo in cargos" 
-                                        :key="cargo.id" 
-                                        class="dropdown-item" 
-                                        :class="{ 'selected': selected_opciones.includes(cargo.id) }" 
-                                        @click.stop="toggleSelection(cargo.id, 'opcion')"
-                                    >
-                                        {{ cargo.nombre }} <span v-if="selected_opciones.includes(cargo.id)">✓</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
                         <label>Ciudad:</label>
-                        <div class="custom-select" @click="toggleDropdown('ciudad')">
+                        <div class="custom-select" @click.stop="toggleDropdown('ciudad')">
                             <div class="selected-options">
                                 <span v-if="isAllSelectedCiudad">TODOS ✓</span>
                                 <span v-else v-for="id in selected_ciudades" :key="id">
@@ -288,13 +288,9 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="form-group">
-                        <label>Evaluación:</label>
-                        <input type="text" class="input-field" v-model="evaluacion">
-                    </div> -->
                     <div class="form-group">
                         <label>Evaluación:</label>
-                        <div class="custom-select" @click="toggleDropdown('eval')">
+                        <div class="custom-select" @click.stop="toggleDropdown('eval')">
                             <div class="selected-options" >
                                 <span v-if="isAllSelectedEval">TODOS ✓</span>
                                 <span v-else v-for="id in selected_evaluaciones" :key="id">
@@ -385,7 +381,7 @@
 <script setup>
 import apiUrl from "../../config.js";
 import LayoutView from '../views/Layouts/LayoutView.vue';
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { Modal } from 'bootstrap';
@@ -888,11 +884,16 @@ const limpiar = () => {
     fecha_fin.value = null;
 };
 
-// Cierra todos los dropdowns al hacer clic fuera
-const closeDropdowns = () => {
+// Cierra todos los dropdowns
+const cerrarTodosLosDropdowns = () => {
   dropdownVisibleCorp.value = false;
   dropdownVisibleRol.value = false;
   dropdownVisiblePos.value = false;
+  dropdownVisibleMacro.value = false;
+  dropdownVisibleOpciones.value = false;
+  dropdownVisibleCiudades.value = false;
+  dropdownVisibleOrigen.value = false;
+  dropdownVisibleEval.value = false;
 };
 
 // ✅ Función mounted que carga información ANTES de que la página renderice
@@ -907,8 +908,13 @@ onMounted(() => {
     if (!token.value) {
         router.push('/'); // Redirigir al login si no hay token
     }
-
     cargarDatos();
+
+    document.addEventListener('click', cerrarTodosLosDropdowns);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', cerrarTodosLosDropdowns);
 });
 </script>
   

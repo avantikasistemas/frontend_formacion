@@ -4,7 +4,7 @@
         <div class="container">
             <div class="form-container">
                 <h2>Consultar</h2>
-                <form class="form-flex">
+                <form class="form-flex" @submit.prevent="consultarDatos">
                     <div class="form-group">
                         <label>Código de la Formación:</label>
                         <input type="text" class="input-field" v-model="codigo">
@@ -72,11 +72,17 @@
                         <label>Fecha Hasta:</label>
                         <input type="date" class="input-field" v-model="fecha_hasta" :min="fecha_desde">
                     </div>
+                    <div class="form-group">
+                    </div>
+                    <div class="form-group">
+                    </div>
+                    <div class="form-group">
+                        <div class="buttons">
+                            <button type="submit" class="consultar">Consultar</button>
+                            <button type="button" class="limpiar" @click="limpiar">Limpiar</button>
+                        </div>
+                    </div>
                 </form>
-                <div class="buttons">
-                    <button class="consultar" @click="consultarDatos">Consultar</button>
-                    <button class="limpiar" @click="limpiar">Limpiar</button>
-                </div>
             </div>
             <div class="form-container">
                 <div class="table-container">
@@ -84,7 +90,6 @@
                     <table>
                         <thead>
                             <tr>
-                                <th># ID</th>
                                 <th>CÓDIGO</th>
                                 <th>TEMA</th>
                                 <th>NIVEL DE FORMACIÓN</th>
@@ -92,10 +97,12 @@
                                 <th>MODALIDAD</th>
                                 <th>DURACIÓN</th>
                                 <th>ESTADO</th>
-                                <th>PERSONAL</th>
                                 <th>MACROPROCESO</th>
+                                <th>PERSONAL</th>
+                                <th>NOTAS</th>
                                 <th>FECHA INICIO</th>
                                 <th>FECHA FIN</th>
+                                <th>CALIFICAR</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,7 +110,6 @@
                                 <td colspan="9" class="no-registros">No hay registros disponibles</td>
                             </tr>
                             <tr v-else v-for="(reg, index) in lista_registros" :key="index" @mouseover="selectRow(index)" :class="{ 'selected-row': index === selectedRowId }">
-                                <td>{{ reg.id }}</td>
                                 <td>{{ reg.codigo }}</td>
                                 <td>{{ reg.tema }}</td>
                                 <td>{{ reg.nivel_formacion }}</td>
@@ -111,10 +117,12 @@
                                 <td>{{ reg.modalidad }}</td>
                                 <td>{{ reg.duracion }}</td>
                                 <td>{{ reg.estado_formacion }}</td>
-                                <td>{{ reg.nombre }}</td>
                                 <td>{{ reg.macroproceso }}</td>
+                                <td>{{ reg.nombre }}</td>
+                                <td>{{ reg.resumen_notas }}</td>
                                 <td>{{ reg.fecha_inicio }}</td>
                                 <td>{{ reg.fecha_fin }}</td>
+                                <td style="text-align: center;" @click="calificar(reg)"><i class="fa-regular fa-clipboard"></i></td>
                             </tr>
                         </tbody>
                     </table>
@@ -172,7 +180,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        {{ msg }}
+                        {{ msgExito }}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -204,6 +212,42 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal adicional para el formulario -->
+        <div class="modal-backdrop" v-if="mostrarFormModal"></div>
+            
+        <div class="custom-modal" v-if="mostrarFormModal">
+            <div class="custom-modal-content large-modal">
+                <div class="custom-modal-header">
+                    <h5>{{selected_tema}}</h5>
+                    <button @click="mostrarFormModal = false" class="custom-modal-close">×</button>
+                </div>
+                <div class="custom-modal-body">
+                    <form class="form-flex form-modal" @submit.prevent="guardarCalificacion">
+                        <div class="form-group" v-if="selected_list_evaluacion.includes(1)">
+                            <label for="cali_escrita">Evaluación Escrita:</label>
+                            <input type="text" id="cali_escrita" @input="limitarDigitos($event, 1)" placeholder="Nota" min="0" max="5" v-model="cal_escrita" required>
+                        </div>
+                        <div class="form-group" v-if="selected_list_evaluacion.includes(2)">
+                            <label for="cali_ejercicios_practicos">Evaluación Ejercicios Prácticos o Estudio de Casos:</label>
+                            <input type="text" id="cali_ejercicios_practicos" @input="limitarDigitos($event, 2)" placeholder="Nota" min="0" max="5" v-model="cal_practica" required>
+                        </div>
+                        <div class="form-group" v-if="selected_list_evaluacion.includes(3)">
+                            <label for="cali_interactiva">Evaluación Interactiva:</label>
+                            <input type="text" id="cali_interactiva" @input="limitarDigitos($event, 3)" placeholder="Nota" min="0" max="5" v-model="cal_interactiva" required>
+                        </div>
+                        <!-- Botón de submit -->
+                        <div class="form-submit">
+                            <button type="submit" class="submit-button">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Efecto de desenfoque cuando la modal está abierta -->
+        <div class="blur-overlay" v-if="mostrarFormModal"></div>
+
     </LayoutView>
 </template>
   
@@ -251,11 +295,23 @@ const position = ref(1);
 
 const modalInstance = ref(null);
 const modalErrorInstance = ref(null);
+const mostrarFormModal = ref(false);
 
 const token_status = ref(0);
 
 const msg = ref("");
+const msgExito = ref("");
 const errorMsg = ref("");
+
+const selected_formacionId = ref(null);
+const selected_cedula = ref(null);
+const selected_tema = ref(null);
+const selected_nombre = ref(null);
+const selected_list_evaluacion = ref([]);
+
+const cal_escrita = ref(null);
+const cal_practica = ref(null);
+const cal_interactiva = ref(null);
 
 const router = useRouter();
 
@@ -446,6 +502,100 @@ const changePage = async (newPosition) => {
   await consultarDatos(); // Vuelve a cargar los datos con el nuevo límite y posición
 };
 
+// ✅ Función para cambiar pagina del paginador
+const calificar = async (reg) => {
+    selected_formacionId.value = reg.id;
+    selected_cedula.value = reg.cedula;
+    selected_tema.value = reg.tema;
+    selected_nombre.value = reg.nombre;
+    selected_list_evaluacion.value = reg.evaluacion;
+    mostrarFormModal.value = true;
+    cal_escrita.value = reg.nota_eva_escrita;
+    cal_practica.value = reg.nota_eva_practica;
+    cal_interactiva.value = reg.nota_eva_interactiva;
+};
+
+// ✅ Función para guardar la calificación de persona por formación
+const guardarCalificacion = async () => {
+    try {
+        if (!token.value) {
+            router.push('/'); // Redirigir al login si no hay token
+        }
+
+        const response = await axios.post(
+            `${apiUrl}/guardar_calificacion`, 
+            {
+                formacion_id: selected_formacionId.value,
+                cedula: selected_cedula.value,
+                nota_eva_escrita: cal_escrita.value,
+                nota_eva_practica: cal_practica.value,
+                nota_eva_interactiva: cal_interactiva.value
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token.value}`
+                }
+            }
+        );
+        if (response.status === 200) {
+            msg.value = response.data.message;
+            msgExito.value = msg.value;
+            mostrarFormModal.value = false;
+            modalInstance.value.show();
+            await consultarDatos();
+        }
+
+    } catch (error) {
+        console.error('Error al cargar los datos:', error);
+        modalErrorInstance.value.show();
+        errorMsg.value = error.response.data.message;
+        if (error.response.status === 401) {
+          token_status.value = error.response.status
+          errorMsg.value = error.response.data.detail;
+        } else if (error.response.status === 403) {
+            token_status.value = error.response.status
+            errorMsg.value = error.response.data.detail;
+        }
+    }
+};
+
+// ✅ Función para limitar los digitos de los campos de calificación a 5
+const limitarDigitos = (event, tipo) => {
+    let valor = event.target.value;
+
+    // Reemplazar cualquier carácter que no sea dígito o punto
+    valor = valor.replace(/[^0-9.]/g, '');
+
+    // Solo permitir un punto decimal
+    const partes = valor.split('.');
+    if (partes.length > 2) {
+        valor = partes[0] + '.' + partes[1];
+    }
+
+    // Limitar a un solo decimal
+    if (partes.length === 2) {
+        partes[1] = partes[1].slice(0, 1); // solo un decimal
+        valor = partes[0] + '.' + partes[1];
+    }
+
+    // Convertir a número y validar rango máximo 5.0
+    let numero = parseFloat(valor);
+    if (numero > 5) {
+        valor = '5.0';
+    }
+
+    event.target.value = valor;
+
+    if (tipo === 1) {
+        cal_escrita.value = valor;
+    } else if (tipo === 2) {
+        cal_practica.value = valor;
+    } else {
+        cal_interactiva.value = valor;
+    }
+};
+
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
@@ -458,7 +608,6 @@ onMounted(() => {
     if (!token.value) {
         router.push('/'); // Redirigir al login si no hay token
     }
-
     cargarDatos();
 });
 </script>
@@ -674,6 +823,110 @@ th {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombras suaves */
     transform: scale(1.01); /* Un ligero aumento de tamaño */
     cursor: pointer;
+}
+
+/* Efecto de desenfoque */
+.blur-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1040; /* Por encima de todo pero debajo de la modal */
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1040;
+}
+
+/* Modal grande */
+.large-modal {
+    width: 900px !important;
+    max-width: 95% !important;
+    height: auto;
+    max-height: 90vh;
+}
+
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.custom-modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 850px;
+    max-width: 92%;
+    max-height: 90vh;
+    height: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.custom-modal-header {
+    padding: 16px 24px;
+    background: #6a5acd;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.6rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.custom-modal-body {
+    padding: 25px;
+    overflow-y: auto;
+}
+
+.submit-button {
+    width: 120px;
+    height: 35px;
+    margin-top: 20px;
+    padding: 8px;
+    background: #6a5acd;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 0.9em;
+}
+.submit-button:hover, .guardar-button:hover {
+    background: #5a4bbf;
+}
+
+.form-modal {
+    display: flex;
+    flex-direction: column;
 }
 
 .pagination {

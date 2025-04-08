@@ -235,7 +235,7 @@
                         <div class="form-column">
                             <div class="form-group">
                                 <label>Macroproceso:</label>
-                                <div class="custom-select" @click="toggleDropdown('macro')">
+                                <div class="custom-select" @click.stop="toggleDropdown('macro')">
                                     <div class="selected-options">
                                         <span v-if="isAllSelectedMacro">TODOS ✓</span>
                                         <span v-else v-for="id in selected_macroproceso" :key="id">
@@ -278,7 +278,7 @@
                         <div class="form-column">
                             <div class="form-group">
                                 <label>Público Objetivo:</label>
-                                <div class="custom-select" @click="toggleDropdown('opciones')">
+                                <div class="custom-select" @click.stop="toggleDropdown('opciones')">
                                     <div class="selected-options">
                                         <span v-if="isAllSelectedOpciones">TODOS ✓</span>
                                         <span v-else v-for="id in selected_opciones" :key="id">
@@ -339,7 +339,7 @@
 <script setup>
 import apiUrl from "../../config.js";
 import LayoutView from '../views/Layouts/LayoutView.vue';
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import { Modal } from 'bootstrap';
@@ -865,6 +865,12 @@ const cargarSelects = async () => {
     }
 };
 
+// Cierra todos los dropdowns
+const cerrarTodosLosDropdowns = () => {
+  dropdownVisibleMacro.value = false;
+  dropdownVisibleOpciones.value = false;
+};
+
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
@@ -884,6 +890,11 @@ onMounted(() => {
     cargarDatos();
     cargarSelects();
     getPersonalFormacion();
+    document.addEventListener('click', cerrarTodosLosDropdowns);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', cerrarTodosLosDropdowns);
 });
 </script>
   
