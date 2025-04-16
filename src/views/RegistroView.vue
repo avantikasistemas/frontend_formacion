@@ -5,26 +5,29 @@
         <div class="container">
             <div class="form-container">
                 <h2>Registrar Nueva Formación</h2>
-                <form @submit.prevent="guardarFormacion" class="form-flex">
-                    <div class="form-group">
+                <form @submit.prevent="validarFormulario" class="form-flex">
+                    <div class="form-group" :class="{ 'error': !nivel_formacion && mostrarErrores }">
                         <label>Nivel de Formación:</label>
                         <select class="input-field" v-model="nivel_formacion">
                             <option :value="null">Seleccione...</option>
                             <option v-for="niv_form in list_tipo_nivel_formacion" :value="niv_form.id">{{ niv_form.nombre }}</option>
                         </select>
+                        <p v-if="!nivel_formacion && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !tipo_actividad && mostrarErrores }">
                         <label>Tipo de Actividad:</label>
                         <select class="input-field" v-model="tipo_actividad">
                             <option :value="null">Seleccione...</option>
                             <option v-for="tip_act in list_tipo_actividad" :value="tip_act.id">{{ tip_act.nombre }}</option>
                         </select>
+                        <p v-if="!tipo_actividad && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !tema.trim() && mostrarErrores }">
                         <label>Tema:</label>
-                        <input type="text" class="input-field" v-model="tema" required>
+                        <input type="text" class="input-field" v-model="tema">
+                        <p v-if="!tema.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selectedOrigenes.length && mostrarErrores }">
                         <label>Origen de la Necesidad:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('origen')">
                             <div class="selected-options" >
@@ -52,16 +55,19 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selectedOrigenes.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !objetivo_general.trim() && mostrarErrores }">
                         <label>Objetivo General:</label>
-                        <input type="text" class="input-field" v-model="objetivo_general" required>
+                        <input type="text" class="input-field" v-model="objetivo_general" >
+                        <p v-if="!objetivo_general.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !objetivo_especifico.trim() && mostrarErrores }">
                         <label>Objetivos Específicos:</label>
-                        <input type="text" class="input-field" v-model="objetivo_especifico" required>
+                        <input type="text" class="input-field" v-model="objetivo_especifico" >
+                        <p v-if="!objetivo_especifico.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_macroproceso.length && mostrarErrores }">
                         <label>Macroproceso:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('macro')">
                             <div class="selected-options" >
@@ -89,9 +95,10 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_macroproceso.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
                     <!-- Segundo Select: Opciones Relacionadas -->
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_opciones.length && mostrarErrores }">
                         <label>Público Objetivo:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('opciones')">
                             <div class="selected-options">
@@ -121,16 +128,18 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_opciones.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !tipo && mostrarErrores }">
                         <label>Tipo:</label>
-                        <select class="input-field" v-model="tipo" required>
+                        <select class="input-field" v-model="tipo" >
                             <option :value="null">Seleccione...</option>
                             <option :value="1">INTERNO</option>
                             <option :value="2">EXTERNO</option>
                         </select>
+                        <p v-if="!tipo && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_competencia_corporativa.length && mostrarErrores }">
                         <label>Competencias Corporativas:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('corp')">
                             <div class="selected-options" >
@@ -158,8 +167,9 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_competencia_corporativa.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_competencia_rol.length && mostrarErrores }">
                         <label>Competencias de Rol:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('rol')">
                             <div class="selected-options">
@@ -187,8 +197,9 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_competencia_rol.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_competencia_posicion.length && mostrarErrores }">
                         <label>Competencias de Posición:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('pos')">
                             <div class="selected-options">
@@ -216,13 +227,15 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_competencia_posicion.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !modalidad && mostrarErrores }">
                         <label>Modalidad:</label>
-                        <select class="input-field" v-model="modalidad" required>
+                        <select class="input-field" v-model="modalidad" >
                             <option :value="null">Seleccione...</option>
                             <option v-for="tip_mod in list_tipo_modalidad" :value="tip_mod.id">{{ tip_mod.nombre }}</option>
                         </select>
+                        <p v-if="!modalidad && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
                     <div class="form-group duracion-container">
                         <label>Duración:</label>
@@ -231,19 +244,20 @@
                                 @input="limitarDigitos($event, 'horas')" 
                                 placeholder="Horas" 
                                 min="0" max="999"
-                                required>
+                                >
                             <input type="number" class="input-field" v-model="duracion_minutos" 
                                 @input="limitarDigitos($event, 'minutos')" 
                                 placeholder="Minutos" 
                                 min="0" max="59"
-                                required>
+                                >
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !metodologia.trim() && mostrarErrores }">
                         <label>Metodología y Contenido:</label>
-                        <input type="text" class="input-field" v-model="metodologia" required>
+                        <input type="text" class="input-field" v-model="metodologia" >
+                        <p v-if="!metodologia.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !proveedorBusqueda.trim() && mostrarErrores }">
                         <label>Proveedor:</label>
                         <input 
                             type="text" 
@@ -258,8 +272,9 @@
                                 {{ prov.nombres }} - {{ prov.nit }}
                             </li>
                         </ul>
+                        <p v-if="!proveedorBusqueda.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_ciudades.length && mostrarErrores }">
                         <label>Ciudad:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('ciudad')">
                             <div class="selected-options">
@@ -287,8 +302,9 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_ciudades.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" :class="{ 'error': !selected_evaluaciones.length && mostrarErrores }">
                         <label>Evaluación:</label>
                         <div class="custom-select" @click.stop="toggleDropdown('eval')">
                             <div class="selected-options" >
@@ -316,6 +332,7 @@
                                 </div>
                             </div>
                         </div>
+                        <p v-if="!selected_evaluaciones.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
                     <div class="form-group">
                         <label>Seguimiento y Retroalimentación:</label>
@@ -346,7 +363,7 @@
                         {{ msg }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="limpiar">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reloadPage">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -452,6 +469,8 @@ const token_status = ref(0);
 const msg = ref("");
 const errorMsg = ref("");
 
+const mostrarErrores = ref(false);
+
 const router = useRouter();
 
 // ✅ Función que llama a la api para guardar la formación
@@ -505,10 +524,10 @@ const guardarFormacion = async () => {
         modalErrorInstance.value.show();
         errorMsg.value = error.response.data.message;
         if (error.response.status === 401) {
-          token_status.value = error.response.status
+          token_status.value = error.response.status;
           errorMsg.value = error.response.data.detail;
         } else if (error.response.status === 403) {
-            token_status.value = error.response.status
+            token_status.value = error.response.status;
             errorMsg.value = error.response.data.detail;
         }
     }    
@@ -896,6 +915,35 @@ const cerrarTodosLosDropdowns = () => {
   dropdownVisibleEval.value = false;
 };
 
+// ✅ Función para validar el formulario antes de enviar
+const validarFormulario = () => {
+    mostrarErrores.value = true;
+
+    if (
+        !nivel_formacion.value ||
+        !tipo_actividad.value ||
+        !tema.value.trim() ||
+        !selectedOrigenes.value.length ||
+        !objetivo_general.value.trim() ||
+        !objetivo_especifico.value.trim() ||
+        !selected_macroproceso.value.length ||
+        !selected_opciones.value.length ||
+        !tipo.value ||
+        !selected_competencia_corporativa.value.length ||
+        !selected_competencia_rol.value.length ||
+        !selected_competencia_posicion.value.length ||
+        !modalidad.value ||
+        !metodologia.value.trim() ||
+        !proveedorBusqueda.value.trim() ||
+        !selected_ciudades.value.length ||
+        !selected_evaluaciones.value.length
+    ) {
+        return; // Detener el envío si hay errores
+    }
+
+    guardarFormacion(); // Llamar a la función original si todo está correcto
+};
+
 // ✅ Función mounted que carga información ANTES de que la página renderice
 onMounted(() => {
     token.value = localStorage.getItem("token");
@@ -916,6 +964,10 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', cerrarTodosLosDropdowns);
 });
+
+const reloadPage = () => {
+    window.location.reload(); // Refrescar la página al cerrar el modal
+};
 </script>
   
 <style scoped>
@@ -1053,6 +1105,18 @@ onUnmounted(() => {
     background: #5a4bbf;
 }
 
+.error .input-field,
+.error select {
+    border-color: red;
+    background-color: #ffe6e6;
+}
+
+.error-text {
+    color: red;
+    font-size: 0.85em;
+    margin-top: 4px;
+}
+
 @media (max-width: 768px) {
     .form-group {
         flex: 1 1 calc(50% - 16px); /* 2 columnas en pantallas medianas */
@@ -1066,4 +1130,3 @@ onUnmounted(() => {
 }
   
 </style>
-  

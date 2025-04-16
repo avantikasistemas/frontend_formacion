@@ -15,6 +15,7 @@
                         <p><b>Fecha Inicio: </b>{{ formacion.fecha_inicio }}</p>
                         <p><b>Fecha Fin: </b>{{ formacion.fecha_fin }}</p>
                         <p><b>Estado: </b>{{ formacion.estado_formacion }}</p>
+                        <p><b>Fecha Creación: </b>{{ formacion.fecha_creacion }}</p>
                         <!-- Aquí puedes agregar más detalles de la formación -->
                     </div>
                 </div>
