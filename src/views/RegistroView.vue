@@ -57,15 +57,13 @@
                         </div>
                         <p v-if="!selectedOrigenes.length && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
                     </div>
-                    <div class="form-group" :class="{ 'error': !objetivo_general.trim() && mostrarErrores }">
+                    <div class="form-group">
                         <label>Objetivo General:</label>
-                        <input type="text" class="input-field" v-model="objetivo_general" >
-                        <p v-if="!objetivo_general.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
+                        <input type="text" class="input-field" v-model="objetivo_general">
                     </div>
-                    <div class="form-group" :class="{ 'error': !objetivo_especifico.trim() && mostrarErrores }">
+                    <div class="form-group">
                         <label>Objetivos Específicos:</label>
-                        <input type="text" class="input-field" v-model="objetivo_especifico" >
-                        <p v-if="!objetivo_especifico.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
+                        <input type="text" class="input-field" v-model="objetivo_especifico">
                     </div>
                     <div class="form-group" :class="{ 'error': !selected_macroproceso.length && mostrarErrores }">
                         <label>Macroproceso:</label>
@@ -252,10 +250,9 @@
                                 >
                         </div>
                     </div>
-                    <div class="form-group" :class="{ 'error': !metodologia.trim() && mostrarErrores }">
+                    <div class="form-group">
                         <label>Metodología y Contenido:</label>
-                        <input type="text" class="input-field" v-model="metodologia" >
-                        <p v-if="!metodologia.trim() && mostrarErrores" class="error-text">Este campo es obligatorio.</p>
+                        <input type="text" class="input-field" v-model="metodologia">
                     </div>
                     <div class="form-group" :class="{ 'error': !proveedorBusqueda.trim() && mostrarErrores }">
                         <label>Proveedor:</label>
@@ -468,6 +465,7 @@ const token_status = ref(0);
 
 const msg = ref("");
 const errorMsg = ref("");
+const ruta = ref("");
 
 const mostrarErrores = ref(false);
 
@@ -581,9 +579,14 @@ watch(proveedorBusqueda, async (nuevoValor) => {
     if (!token.value) {
         router.push('/'); // Redirigir al login si no hay token
     }
+    if (tipo.value == 1) {
+        ruta.value = `${apiUrl}/get_personal_interno`;
+    }else if (tipo.value == 2) {
+        ruta.value = `${apiUrl}/get_proveedores`;
+    }
     if (nuevoValor.length >= 2) { // Iniciar búsqueda después de 2 caracteres
         try {
-            const response = await axios.post(`${apiUrl}/get_proveedores`, 
+            const response = await axios.post(ruta.value, 
                 {
                     valor: nuevoValor
                 },
@@ -924,8 +927,6 @@ const validarFormulario = () => {
         !tipo_actividad.value ||
         !tema.value.trim() ||
         !selectedOrigenes.value.length ||
-        !objetivo_general.value.trim() ||
-        !objetivo_especifico.value.trim() ||
         !selected_macroproceso.value.length ||
         !selected_opciones.value.length ||
         !tipo.value ||
@@ -933,7 +934,6 @@ const validarFormulario = () => {
         !selected_competencia_rol.value.length ||
         !selected_competencia_posicion.value.length ||
         !modalidad.value ||
-        !metodologia.value.trim() ||
         !proveedorBusqueda.value.trim() ||
         !selected_ciudades.value.length ||
         !selected_evaluaciones.value.length

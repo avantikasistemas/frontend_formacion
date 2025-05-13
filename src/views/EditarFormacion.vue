@@ -19,11 +19,21 @@
                     </div>
                     <div class="form-group">
                         <label>Objetivo General:</label>
-                        <p>{{ objetivo_general }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <textarea class="input-field" v-model="objetivo_general" rows="2"></textarea>
+                        </template>
+                        <template v-else>
+                            <p>{{ objetivo_general }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Objetivos Específicos:</label>
-                        <p>{{ objetivo_especifico }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <textarea class="input-field" v-model="objetivo_especifico" rows="2"></textarea>
+                        </template>
+                        <template v-else>
+                            <p>{{ objetivo_especifico }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Modalidad:</label>
@@ -80,11 +90,21 @@
                     </div>
                     <div class="form-group">
                         <label>Metodología y Contenido:</label>
-                        <p class="texto-ajustado">{{ metodologia }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <textarea class="input-field" v-model="metodologia" rows="2"></textarea>
+                        </template>
+                        <template v-else>
+                            <p class="texto-ajustado">{{ metodologia }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Seguimiento y Retroalimentación:</label>
-                        <p class="texto-ajustado">{{ seguimiento }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <textarea class="input-field" v-model="seguimiento" rows="2"></textarea>
+                        </template>
+                        <template v-else>
+                            <p class="texto-ajustado">{{ seguimiento }}</p>
+                        </template>
                     </div>
                 </form>
             </div>
@@ -534,6 +554,10 @@ const actualizarFormacion = async () => {
                 estado_formacion: tipo_estado_formacion.value,
                 fecha_inicio: fecha_inicio.value,
                 fecha_fin: fecha_fin.value,
+                objetivo_general: objetivo_general.value,
+                objetivo_especifico: objetivo_especifico.value,
+                metodologia: metodologia.value,
+                seguimiento: seguimiento.value
             },
             {
                 headers: {
@@ -1321,4 +1345,3 @@ onUnmounted(() => {
     }
 }
 </style>
-  
