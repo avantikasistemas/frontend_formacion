@@ -11,11 +11,31 @@
                 <form class="form-flex" @submit.prevent="actualizarFormacion">
                     <div class="form-group">
                         <label>Nivel de Formación:</label>
-                        <p>{{ nivel_formacion }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <select class="input-field" v-model="nivel_formacion">
+                                <option :value="null">Seleccione...</option>
+                                <option v-for="nivel in list_niveles_formacion" :key="nivel.id" :value="nivel.id">
+                                    {{ nivel.nombre }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <p>{{ nivel_formacion }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Tipo de Actividad:</label>
-                        <p>{{ tipo_actividad }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <select class="input-field" v-model="tipo_actividad">
+                                <option :value="null">Seleccione...</option>
+                                <option v-for="tipo in list_tipos_actividad" :key="tipo.id" :value="tipo.id">
+                                    {{ tipo.nombre }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <p>{{ tipo_actividad }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Objetivo General:</label>
@@ -37,23 +57,64 @@
                     </div>
                     <div class="form-group">
                         <label>Modalidad:</label>
-                        <p>{{ modalidad }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <select class="input-field" v-model="modalidad">
+                                <option :value="null">Seleccione...</option>
+                                <option v-for="modalidad in list_tipo_modalidad" :key="modalidad.id" :value="modalidad.id">
+                                    {{ modalidad.nombre }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <p>{{ modalidad }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Duración Horas:</label>
-                        <p>{{ duracion_horas }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <input type="number" class="input-field" v-model.number="duracion_horas" min="0" />
+                        </template>
+                        <template v-else>
+                            <p>{{ duracion_horas }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Duración Minutos:</label>
-                        <p>{{ duracion_minutos }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <input type="number" class="input-field" v-model.number="duracion_minutos" min="0" max="59" />
+                        </template>
+                        <template v-else>
+                            <p>{{ duracion_minutos }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Tipo:</label>
-                        <p>{{ tipo }}</p>
+                        <template v-if="tipo_estado_formacion != 3">
+                            <select class="input-field" v-model="tipo">
+                                <option :value="null">Seleccione...</option>
+                                <option :value="1">INTERNO</option>
+                                <option :value="2">EXTERNO</option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <p>{{ tipo }}</p>
+                        </template>
                     </div>
                     <div class="form-group">
                         <label>Proveedor:</label>
-                        <p>{{ proveedorBusqueda }}</p>
+                        <input 
+                            type="text" 
+                            class="input-field" 
+                            v-model="proveedorBusqueda" 
+                            @focus="mostrarLista = true" 
+                            @blur="ocultarLista"
+                            placeholder="Escriba el proveedor..."
+                        >
+                        <ul v-if="mostrarLista && proveedores.length" class="dropdown-list">
+                            <li v-for="prov in proveedores" :key="prov.id" @mousedown="seleccionarProveedor(prov)">
+                                {{ prov.nombres }} - {{ prov.nit }}
+                            </li>
+                        </ul>
                     </div>
                     <div class="form-group" v-if="tipo_estado_formacion != 3">
                         <label>Fecha de Inicio de Formación:</label>
@@ -396,6 +457,9 @@ const validar_estado_formacion = ref(null);
 const validar_estado_formacion_nombre = ref('');
 
 const list_estados_formacion = ref([]);
+const list_niveles_formacion = ref([]);
+const list_tipos_actividad = ref([]);
+const list_tipo_modalidad = ref([]);
 const proveedorBusqueda = ref("");
 
 const modalInstance = ref(null);
@@ -411,6 +475,10 @@ const dropdownVisibleMacro = ref(false);
 const dropdownVisibleOpciones = ref(false);
 
 const mostrarFormModal = ref(false);
+const mostrarLista = ref(false);
+const proveedores = ref([]);
+const proveedorId = ref("");
+const ruta = ref('');
 
 // Variables reactivas
 const busqueda = ref(""); // Para almacenar el texto de búsqueda
@@ -421,6 +489,52 @@ const personalAgregado = ref([]); // Para almacenar el personal agregado a la se
 
 const router = useRouter();
 const route = useRoute();
+
+// ✅ Función para ocultar la lista
+const ocultarLista = () => {
+    setTimeout(() => {
+        mostrarLista.value = false;
+    }, 200);
+};
+
+// ✅ Watcher que esta pendiente si hay un cambio en el campo de busqueda
+watch(proveedorBusqueda, async (nuevoValor) => {
+    if (!token.value) {
+        router.push('/'); // Redirigir al login si no hay token
+    }
+    if (tipo.value == 1) {
+        ruta.value = `${apiUrl}/get_personal_interno`;
+    }else if (tipo.value == 2) {
+        ruta.value = `${apiUrl}/get_proveedores`;
+    }
+    if (nuevoValor.length >= 2) { // Iniciar búsqueda después de 2 caracteres
+        try {
+            const response = await axios.post(ruta.value, 
+                {
+                    valor: nuevoValor
+                },
+                {
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token.value}`
+                    }
+                }
+            );
+            proveedores.value = response.data.data; // Suponiendo que la API devuelve [{id: 1, nombre: "Proveedor 1"}, ...]
+        } catch (error) {
+            console.error("Error en la búsqueda:", error);
+        }
+    } else {
+        proveedores.value = [];
+    }
+});
+
+// ✅ Función que selecciona los datos del proveedor elegido en el input de proveedor
+const seleccionarProveedor = (prov) => {
+    proveedorBusqueda.value = prov.nombres + ' - ' + prov.nit;
+    proveedorId.value = prov.id;
+    mostrarLista.value = false;
+};
 
 // ✅ Función que actualiza los macroprocesos elegidos
 const actualizarMacroprocesos = async () => {
@@ -505,18 +619,18 @@ const getFormacion = async () => {
             }
         );
         if (response.status === 200) {
-            nivel_formacion.value = response.data.data.nivel_formacion_nombre;
-            tipo_actividad.value = response.data.data.tipo_actividad_nombre;
+            nivel_formacion.value = response.data.data.nivel_formacion;
+            tipo_actividad.value = response.data.data.tipo_actividad;
             tema.value = response.data.data.tema.toUpperCase();
             origen.value = capitalizarPrimeraLetra(response.data.data.origen);
             objetivo_general.value = capitalizarPrimeraLetra(response.data.data.objetivo_general);
             objetivo_especifico.value = capitalizarPrimeraLetra(response.data.data.objetivo_especifico);
-            modalidad.value = response.data.data.modalidad_nombre;
+            modalidad.value = response.data.data.modalidad;
             duracion_horas.value = response.data.data.duracion_horas;
             duracion_minutos.value = response.data.data.duracion_minutos;
             metodologia.value = capitalizarPrimeraLetra(response.data.data.metodologia);
-            tipo.value = response.data.data.tipo_nombre;
-            proveedorBusqueda.value = response.data.data.proveedor_nombre;
+            tipo.value = response.data.data.tipo;
+            proveedorBusqueda.value = `${response.data.data.proveedor_nombre} - ${response.data.data.proveedor_nit}`;
             ciudad.value = response.data.data.ciudad;
             evaluacion.value = capitalizarPrimeraLetra(response.data.data.evaluacion);
             seguimiento.value = capitalizarPrimeraLetra(response.data.data.seguimiento);
@@ -525,6 +639,7 @@ const getFormacion = async () => {
             fecha_fin.value = response.data.data.fecha_fin;
             validar_estado_formacion.value = response.data.data.estado_formacion;
             validar_estado_formacion_nombre.value = response.data.data.estado_formacion_nombre;
+            proveedorId.value = response.data.data.proveedor;
         }
 
     } catch (error) {
@@ -557,7 +672,14 @@ const actualizarFormacion = async () => {
                 objetivo_general: objetivo_general.value,
                 objetivo_especifico: objetivo_especifico.value,
                 metodologia: metodologia.value,
-                seguimiento: seguimiento.value
+                seguimiento: seguimiento.value,
+                nivel_formacion: nivel_formacion.value,
+                tipo_actividad: tipo_actividad.value,
+                modalidad: modalidad.value,
+                duracion_horas: duracion_horas.value,
+                duracion_minutos: duracion_minutos.value,
+                tipo: tipo.value,
+                proveedor: proveedorId.value,
             },
             {
                 headers: {
@@ -674,6 +796,7 @@ function redirigir_home() {
   router.push('/registro'); // Redirigir al dashboard
 };
 
+// ✅ Función para capitalizar la primera letra de una cadena
 const capitalizarPrimeraLetra = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -873,6 +996,9 @@ const cargarSelects = async () => {
         if (response.status === 200) {
             msg.value = response.data.message;
             list_macroprocesos.value = response.data.data.macroprocesos;
+            list_niveles_formacion.value = response.data.data.nivel_formacion;
+            list_tipos_actividad.value = response.data.data.tipo_actividad;
+            list_tipo_modalidad.value = response.data.data.tipo_modalidad;
         }
 
     } catch (error) {
